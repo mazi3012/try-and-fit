@@ -29,10 +29,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <div className="page-shell">
-          <TopNav />
-          <main className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">{children}</main>
-        </div>
+          <div className="page-shell">
+            <TopNav />
+            <main className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">{children}</main>
+          </div>
       </body>
     </html>
   );

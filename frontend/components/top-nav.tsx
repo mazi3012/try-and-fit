@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
+import Image from "next/image";
+import type { User } from "@supabase/supabase-js";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -12,6 +16,41 @@ const navItems = [
 
 export function TopNav() {
   const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <header className="border-b border-border bg-white/90 backdrop-blur">
@@ -36,6 +75,39 @@ export function TopNav() {
             );
           })}
         </nav>
+
+        <div className="flex items-center gap-4">
+          {!loading && user ? (
+            <div className="flex items-center gap-3">
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-medium text-slate-900">{user.user_metadata?.full_name || user.email}</p>
+                <button
+                  onClick={handleSignOut}
+                  className="text-xs text-slate-500 hover:text-brand"
+                >
+                  Sign out
+                </button>
+              </div>
+              {user.user_metadata?.avatar_url && (
+                <Image
+                  src={user.user_metadata.avatar_url}
+                  alt={user.user_metadata?.full_name || "User"}
+                  width={32}
+                  height={32}
+                  className="rounded-full border border-slate-200"
+                />
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={handleSignIn}
+              disabled={loading}
+              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand/90 disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Sign in"}
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );
