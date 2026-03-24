@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TryAndFit – Product Requirements Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --brand: #6C3BFF;
+    --brand-light: #EEE8FF;
+    --accent: #FF5B8C;
+    --text: #1A1A2E;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --bg: #FAFAFA;
+    --white: #FFFFFF;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  /* Cover Page */
+  .cover {
+    background: linear-gradient(135deg, #6C3BFF 0%, #FF5B8C 100%);
+    color: white;
+    padding: 80px 60px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .cover h1 span { color: rgba(255,255,255,0.6); }
+  .cover .tagline {
+    font-size: 18px;
+    font-weight: 300;
+    opacity: 0.85;
+    margin-bottom: 40px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    font-size: 13px;
+    opacity: 0.75;
+  }
+  .cover-meta strong { display: block; opacity: 1; font-weight: 600; font-size: 14px; }
+
+  /* Layout */
+  .container { max-width: 900px; margin: 0 auto; padding: 60px 40px; }
+
+  /* TOC */
+  .toc {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 36px;
+    margin-bottom: 50px;
+  }
+  .toc h2 { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand); margin-bottom: 20px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 8px 0; }
+  .toc a { color: var(--text); text-decoration: none; font-weight: 500; }
+  .toc a:hover { color: var(--brand); }
+
+  /* Sections */
+  .section { margin-bottom: 60px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-num {
+    background: var(--brand);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 12px; color: var(--text); }
+  p { margin-bottom: 14px; color: #374151; }
+
+  /* Cards */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .card-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .card .card-icon { font-size: 24px; margin-bottom: 10px; }
+  .card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+  /* Feature highlight */
+  .feature-block {
+    background: var(--brand-light);
+    border-left: 4px solid var(--brand);
+    border-radius: 0 10px 10px 0;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+  .feature-block h4 { font-size: 14px; font-weight: 700; color: var(--brand); margin-bottom: 8px; }
+  .feature-block p { font-size: 13px; margin: 0; color: #4B5563; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--white); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  thead { background: var(--brand); color: white; }
+  th { padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; }
+  td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #F9FAFB; }
+
+  /* Badges */
+  .badge-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-green { background: #D1FAE5; color: #065F46; }
+  .badge-yellow { background: #FEF3C7; color: #92400E; }
+  .badge-red { background: #FEE2E2; color: #991B1B; }
+  .badge-purple { background: var(--brand-light); color: var(--brand); }
+  .badge-blue { background: #DBEAFE; color: #1E40AF; }
+
+  /* Flow diagram box */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 24px 0;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .flow-step {
+    background: var(--brand-light);
+    border: 1px solid #C4B5FD;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand);
+    text-align: center;
+    min-width: 110px;
+  }
+  .flow-arrow { padding: 0 8px; color: var(--muted); font-size: 18px; }
+
+  /* Stack list */
+  .stack-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stack-item:last-child { border-bottom: none; }
+  .stack-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .stack-label { font-weight: 700; font-size: 13px; }
+  .stack-desc { font-size: 13px; color: var(--muted); }
+
+  /* Roadmap */
+  .phase {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    border-left: 4px solid var(--brand);
+  }
+  .phase.p2 { border-left-color: var(--accent); }
+  .phase.p3 { border-left-color: var(--success); }
+  .phase h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .phase .phase-duration { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .phase ul { padding-left: 18px; }
+  .phase li { font-size: 13px; margin: 4px 0; }
+
+  /* Risk */
+  .risk-row td:nth-child(3) { font-weight: 600; }
+
+  /* Callout */
+  .callout {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 13px;
+    color: #92400E;
+  }
+  .callout strong { color: #78350F; }
+
+  /* List styling */
+  ul.styled, ol.styled { padding-left: 20px; margin: 12px 0; }
+  ul.styled li, ol.styled li { margin: 6px 0; font-size: 13.5px; color: #374151; }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 30px;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+
+  @media print {
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="badge">Product Requirements Document</div>
+  <h1>TryAnd<span>Fit</span></h1>
+  <div class="tagline">AI-Powered Virtual Try-On — See It On You Before You Buy</div>
+  <div class="cover-meta">
+    <div><strong>Version</strong>v1.0 — Draft</div>
+    <div><strong>Platform</strong>Web (Browser)</div>
+    <div><strong>Stack</strong>Next.js · Supabase · Vercel · Fashn.ai</div>
+    <div><strong>Market</strong>India (Myntra, Flipkart, Amazon, Meesho + Global)</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#s1">Executive Summary</a></li>
+      <li><a href="#s2">Problem &amp; Opportunity</a></li>
+      <li><a href="#s3">Product Vision &amp; Goals</a></li>
+      <li><a href="#s4">Core Features &amp; User Flows</a></li>
+      <li><a href="#s5">Technical Architecture</a></li>
+      <li><a href="#s6">AI &amp; ML Pipeline</a></li>
+      <li><a href="#s7">Data Models &amp; Database Schema</a></li>
+      <li><a href="#s8">API Design</a></li>
+      <li><a href="#s9">Security &amp; Privacy</a></li>
+      <li><a href="#s10">Roadmap</a></li>
+      <li><a href="#s11">Risks &amp; Mitigations</a></li>
+      <li><a href="#s12">Success Metrics (KPIs)</a></li>
+    </ol>
+  </div>
+
+  <!-- S1: EXECUTIVE SUMMARY -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Executive Summary</h2>
+    </div>
+    <p>TryAndFit is a web-based AI virtual try-on platform that lets shoppers see how any outfit looks on their own body before purchasing — using just a selfie or full-body photo. Users can submit an outfit image directly, or paste a product link from Indian and global e-commerce platforms (Myntra, Flipkart, Amazon, Meesho, AJIO, Instagram, or any website), and the AI generates a photorealistic composite showing them wearing the outfit.</p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <h4>Core Value Prop</h4>
+        <p>Reduce fashion purchase anxiety and returns by letting users virtually wear any garment before buying.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌏</div>
+        <h4>Target Market</h4>
+        <p>India-first (Myntra, Flipkart, Meesho, Amazon.in, AJIO) with global web support via URL scraping.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h4>AI Engine</h4>
+        <p>Fashn.ai virtual try-on API — purpose-built for garment transfer on real human photos.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h4>Infrastructure</h4>
+        <p>Next.js on Vercel, Supabase (Postgres + Edge Functions + Storage), GCP bucket for image assets.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2: PROBLEM -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Problem &amp; Opportunity</h2>
+    </div>
+    <h3>The Problem</h3>
+    <p>Online fashion shoppers in India face a fundamental trust gap: product photos show models — not them. This leads to high return rates (estimated 25–40% for fashion in India), purchase hesitation, and wasted money. No major Indian platform offers AI try-on natively.</p>
+    <h3>The Opportunity</h3>
+    <div class="card-grid-3">
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h4>$10B+</h4>
+        <p>Indian online fashion market (2024), growing 15% YoY</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">↩️</div>
+        <h4>30%+ Returns</h4>
+        <p>Average fashion return rate driven by "doesn't look right on me"</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛍️</div>
+        <h4>No Native Try-On</h4>
+        <p>Myntra, Meesho, Flipkart fashion — none offer real AI try-on today</p>
+      </div>
+    </div>
+    <h3>User Pain Points</h3>
+    <ul class="styled">
+      <li>Can't tell how a garment looks on their body type or skin tone</li>
+      <li>Model photos don't represent the average Indian body</li>
+      <li>Ordering multiple sizes to try = expensive and wasteful</li>
+      <li>Instagram outfit inspiration can't be "tried on" instantly</li>
+    </ul>
+  </div>
+
+  <!-- S3: VISION -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Product Vision &amp; Goals</h2>
+    </div>
+    <div class="feature-block">
+      <h4>Vision Statement</h4>
+      <p>"TryAndFit is the fitting room of the internet — making every outfit decision confident, inclusive, and instant, for every body type across India and beyond."</p>
+    </div>
+    <h3>Goals — MVP (Phase 1)</h3>
+    <ul class="styled">
+      <li>Allow users to upload a personal photo + outfit photo OR paste a product URL and receive a try-on result within 15–30 seconds</li>
+      <li>Support top 5 Indian platforms: Myntra, Flipkart, Amazon.in, Meesho, AJIO</li>
+      <li>Support Instagram posts and generic product URLs</li>
+      <li>Enable users to save, share, and compare try-on results</li>
+      <li>Achieve try-on image quality rating ≥ 4.0/5.0 from user feedback</li>
+    </ul>
+    <h3>Goals — Growth (Phase 2+)</h3>
+    <ul class="styled">
+      <li>Browser extension for one-click try-on on any shopping site</li>
+      <li>Wishlist / outfit board feature</li>
+      <li>Direct purchase links from within the app</li>
+      <li>B2B API for fashion brands and retailers</li>
+    </ul>
+  </div>
+
+  <!-- S4: FEATURES -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Core Features &amp; User Flows</h2>
+    </div>
+
+    <h3>4.1 Three Input Modes</h3>
+    <div class="card-grid-3">
+      <div class="card">
+        <div class="card-icon">📸</div>
+        <h4>Mode A — Photo Upload</h4>
+        <p>User uploads their own photo + a direct photo of the outfit (from phone, downloaded image, etc.).</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <h4>Mode B — Product URL</h4>
+        <p>User pastes a product link from Myntra, Flipkart, Amazon, Meesho, AJIO, or any e-commerce site. We scrape the outfit image automatically.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h4>Mode C — Instagram / Social</h4>
+        <p>User pastes an Instagram post URL or any page with an outfit image. We extract the outfit photo and proceed to try-on.</p>
+      </div>
+    </div>
+
+    <h3>4.2 Primary User Flow</h3>
+    <div class="flow">
+      <div class="flow-step">Land on App</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Upload Self Photo</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Choose Input Mode</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Outfit Extracted</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">AI Try-On</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Result + Save/Share</div>
+    </div>
+
+    <h3>4.3 URL Scraping — Platform Support</h3>
+    <table>
+      <thead>
+        <tr><th>Platform</th><th>Method</th><th>Outfit Image Extraction</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Myntra</td><td>API / HTML scrape</td><td>Product image CDN URL</td><td><span class="badge-pill badge-green">MVP</span></td></tr>
+        <tr><td>Flipkart</td><td>HTML scrape</td><td>JSON-LD image field</td><td><span class="badge-pill badge-green">MVP</span></td></tr>
+        <tr><td>Amazon.in</td><td>HTML scrape</td><td>ASIN image endpoint</td><td><span class="badge-pill badge-green">MVP</span></td></tr>
+        <tr><td>Meesho</td><td>HTML scrape</td><td>OG image meta tag</td><td><span class="badge-pill badge-green">MVP</span></td></tr>
+        <tr><td>AJIO</td><td>HTML scrape</td><td>Product JSON image</td><td><span class="badge-pill badge-green">MVP</span></td></tr>
+        <tr><td>Instagram</td><td>Playwright headless</td><td>Post image extraction</td><td><span class="badge-pill badge-yellow">Phase 2</span></td></tr>
+        <tr><td>Any Website</td><td>OG image / largest img</td><td>Open Graph fallback</td><td><span class="badge-pill badge-green">MVP</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.4 Result Features</h3>
+    <ul class="styled">
+      <li><strong>Side-by-side comparison</strong> — original photo vs try-on result</li>
+      <li><strong>Save to wardrobe</strong> — logged-in users can save try-on results</li>
+      <li><strong>Download image</strong> — high-res PNG download</li>
+      <li><strong>Share link</strong> — public share URL for the result</li>
+      <li><strong>One-click to buy</strong> — deep link back to the original product</li>
+      <li><strong>Feedback rating</strong> — thumbs up/down + 1–5 star quality rating</li>
+    </ul>
+
+    <h3>4.5 User Account (Optional for MVP)</h3>
+    <ul class="styled">
+      <li>Sign up / login via Google or email (Supabase Auth)</li>
+      <li>Saved try-on history (last 50 results)</li>
+      <li>Virtual wardrobe / outfit board</li>
+      <li>Credit system for try-on requests (freemium)</li>
+    </ul>
+  </div>
+
+  <!-- S5: ARCHITECTURE -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Technical Architecture</h2>
+    </div>
+
+    <h3>5.1 High-Level Stack</h3>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;margin:16px 0;">
+      <div class="stack-item">
+        <div class="stack-icon">🖥️</div>
+        <div><div class="stack-label">Frontend — Next.js 14 (App Router) on Vercel</div><div class="stack-desc">React 18, TailwindCSS, ShadCN UI. Deployed to Vercel Edge Network. ISR for landing pages. CSR for the app UI.</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">⚡</div>
+        <div><div class="stack-label">Backend — Supabase Edge Functions (Deno)</div><div class="stack-desc">Serverless functions for: URL scraping, image pre-processing, Fashn.ai API calls, result storage. Runs at edge for low latency.</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🗄️</div>
+        <div><div class="stack-label">Database — Supabase Postgres</div><div class="stack-desc">Users, try-on jobs, results, wardrobe, credits, feedback. Row Level Security (RLS) enforced on all tables.</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🪣</div>
+        <div><div class="stack-label">Image Storage — Supabase Storage + GCP Bucket</div><div class="stack-desc">Supabase Storage for user uploads (person photos, outfit photos). GCP Cloud Storage bucket for output result images (CDN-served). Signed URLs for private access.</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🤖</div>
+        <div><div class="stack-label">AI Try-On — Fashn.ai API</div><div class="stack-desc">Dedicated virtual garment try-on model. Accepts person image + garment image → outputs photorealistic composite. Best-in-class for fashion specifically.</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🔐</div>
+        <div><div class="stack-label">Auth — Supabase Auth</div><div class="stack-desc">Google OAuth + Magic Link email. JWT tokens. Guest mode supported for first try-on without signup.</div></div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">📊</div>
+        <div><div class="stack-label">Analytics — Vercel Analytics + Supabase logs</div><div class="stack-desc">Page views, try-on funnel, conversion rate, API latency.</div></div>
+      </div>
+    </div>
+
+    <h3>5.2 Request Flow — URL Mode</h3>
+    <div class="flow" style="flex-wrap:wrap;">
+      <div class="flow-step">User pastes URL</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Edge Function: Scrape URL</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Extract outfit image</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Upload to Supabase Storage</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Call Fashn.ai API</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Store result in GCP</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Return to user</div>
+    </div>
+
+    <h3>5.3 Environments</h3>
+    <table>
+      <thead><tr><th>Environment</th><th>URL</th><th>Branch</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Production</td><td>tryandfit.com</td><td>main</td><td>Live users</td></tr>
+        <tr><td>Staging</td><td>staging.tryandfit.com</td><td>staging</td><td>QA before release</td></tr>
+        <tr><td>Preview</td><td>*.vercel.app</td><td>any PR</td><td>PR review</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- S6: AI PIPELINE -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>AI &amp; ML Pipeline</h2>
+    </div>
+
+    <h3>6.1 Why Fashn.ai</h3>
+    <p>Fashn.ai is a dedicated AI virtual try-on API purpose-built for fashion — not a general image generation model. It understands garment structure, fabric drape, body pose, and lighting context, producing far superior results compared to generic diffusion models for this specific use case.</p>
+
+    <h3>6.2 Input Requirements</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Required</th><th>Format</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Person photo</td><td>Yes</td><td>JPG/PNG, ≥512px</td><td>Full body preferred, clear background helps</td></tr>
+        <tr><td>Garment image</td><td>Yes</td><td>JPG/PNG, ≥512px</td><td>Flat lay or on-model both work</td></tr>
+        <tr><td>Garment category</td><td>Optional</td><td>top / bottom / dress</td><td>Auto-detected if not provided</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.3 Pre-Processing (Edge Function)</h3>
+    <ul class="styled">
+      <li>Resize and normalize images to 768×1024 for optimal API performance</li>
+      <li>Strip EXIF metadata for privacy</li>
+      <li>Convert to JPEG (90% quality) to reduce payload size</li>
+      <li>Validate: faces present in person photo, garment visible in outfit photo</li>
+    </ul>
+
+    <h3>6.4 Async Job Queue</h3>
+    <p>Try-on requests are processed asynchronously. The flow:</p>
+    <ol class="styled">
+      <li>Frontend submits job → gets <code>job_id</code> immediately</li>
+      <li>Edge Function queues Fashn.ai API call</li>
+      <li>Frontend polls <code>/api/jobs/[job_id]</code> every 2 seconds</li>
+      <li>On completion, result URL is returned and stored</li>
+      <li>Realtime update via Supabase Realtime (optional enhancement)</li>
+    </ol>
+
+    <h3>6.5 Fallback Strategy</h3>
+    <div class="callout">
+      <strong>⚠️ If Fashn.ai returns an error</strong> (bad image quality, NSFW flagged, timeout): display a helpful error message with retry option. Log failures to Supabase for quality monitoring. Do not charge credits on failed jobs.
+    </div>
+  </div>
+
+  <!-- S7: DATA MODEL -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Data Models &amp; Database Schema</h2>
+    </div>
+
+    <h3>7.1 Core Tables (Supabase Postgres)</h3>
+
+    <table>
+      <thead><tr><th>Table</th><th>Key Fields</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>id, email, plan, credits_remaining, created_at</td><td>Managed by Supabase Auth, extended with profile</td></tr>
+        <tr><td><code>tryon_jobs</code></td><td>id, user_id, status, person_image_url, outfit_image_url, source_url, result_image_url, fashn_job_id, error_msg, created_at</td><td>Central job tracking table</td></tr>
+        <tr><td><code>scraped_products</code></td><td>id, source_url, platform, product_name, outfit_image_url, price, buy_url, scraped_at</td><td>Cache scraped product data to avoid re-scraping</td></tr>
+        <tr><td><code>wardrobe</code></td><td>id, user_id, job_id, outfit_name, tags, is_favourite, created_at</td><td>User's saved try-on results</td></tr>
+        <tr><td><code>feedback</code></td><td>id, job_id, user_id, rating (1-5), comment, created_at</td><td>Quality feedback per try-on</td></tr>
+        <tr><td><code>credits_log</code></td><td>id, user_id, amount, type (used/added), job_id, created_at</td><td>Audit trail for credit usage</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.2 Image Storage Layout</h3>
+    <table>
+      <thead><tr><th>Bucket / Location</th><th>Contents</th><th>Access</th></tr></thead>
+      <tbody>
+        <tr><td>Supabase Storage: <code>person-photos</code></td><td>User uploaded self-photos</td><td>Private (signed URL, 1hr expiry)</td></tr>
+        <tr><td>Supabase Storage: <code>outfit-photos</code></td><td>Uploaded or scraped outfit images</td><td>Private (signed URL)</td></tr>
+        <tr><td>GCP Bucket: <code>tryon-results</code></td><td>AI-generated try-on output images</td><td>Public CDN (with hash in filename)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.3 Job Status Flow</h3>
+    <div class="flow">
+      <div class="flow-step" style="background:#FEF3C7;border-color:#F59E0B;color:#92400E;">pending</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#DBEAFE;border-color:#3B82F6;color:#1D4ED8;">processing</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#D1FAE5;border-color:#10B981;color:#065F46;">completed</div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:4px;">Failed state also possible: <span class="badge-pill badge-red">failed</span> with error_msg stored for debugging.</p>
+  </div>
+
+  <!-- S8: API DESIGN -->
+  <div class="section" id="s8">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>API Design</h2>
+    </div>
+    <p>All API routes are Next.js Route Handlers (<code>/app/api/</code>) and Supabase Edge Functions. Auth via Supabase JWT in <code>Authorization</code> header.</p>
+    <table>
+      <thead><tr><th>Endpoint</th><th>Method</th><th>Description</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/tryon/submit</code></td><td>POST</td><td>Submit a try-on job (photos + optional URL)</td><td>Required</td></tr>
+        <tr><td><code>/api/tryon/[job_id]</code></td><td>GET</td><td>Poll job status and result URL</td><td>Required</td></tr>
+        <tr><td><code>/api/scrape</code></td><td>POST</td><td>Scrape outfit image from a product URL</td><td>Required</td></tr>
+        <tr><td><code>/api/wardrobe</code></td><td>GET/POST/DELETE</td><td>CRUD for user's saved wardrobe items</td><td>Required</td></tr>
+        <tr><td><code>/api/feedback</code></td><td>POST</td><td>Submit rating/feedback for a try-on result</td><td>Optional</td></tr>
+        <tr><td><code>/api/share/[job_id]</code></td><td>GET</td><td>Public share page for a result (no auth)</td><td>None</td></tr>
+        <tr><td><code>/api/credits</code></td><td>GET</td><td>Get user's credit balance</td><td>Required</td></tr>
+      </tbody>
+    </table>
+
+    <h3>8.1 Rate Limits</h3>
+    <ul class="styled">
+      <li><strong>Free users:</strong> 3 try-ons per day, 20 total</li>
+      <li><strong>Pro users:</strong> 50 try-ons per day, unlimited total</li>
+      <li><strong>Scrape endpoint:</strong> 10 requests/min per IP (bot protection)</li>
+    </ul>
+  </div>
+
+  <!-- S9: SECURITY -->
+  <div class="section" id="s9">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Security &amp; Privacy</h2>
+    </div>
+    <ul class="styled">
+      <li><strong>Row Level Security (RLS)</strong> — All Supabase tables have RLS policies; users can only access their own data</li>
+      <li><strong>Photo privacy</strong> — Person photos are stored with private signed URLs (1hr expiry); never publicly accessible</li>
+      <li><strong>EXIF stripping</strong> — GPS and device metadata stripped from all uploaded images before storage</li>
+      <li><strong>Auto-deletion</strong> — Person photos are deleted after 24 hours (configurable). Results retained for 90 days</li>
+      <li><strong>No face recognition</strong> — Person photos are passed to Fashn.ai only for garment overlay; no facial data is stored or analyzed</li>
+      <li><strong>HTTPS only</strong> — All traffic over TLS 1.3; HSTS headers set</li>
+      <li><strong>GDPR-ready</strong> — Data export and deletion endpoints for user account management</li>
+      <li><strong>Content moderation</strong> — Fashn.ai has built-in NSFW detection; we additionally validate uploads for appropriate content</li>
+      <li><strong>API key security</strong> — Fashn.ai key stored as Supabase/Vercel secret; never exposed to frontend</li>
+    </ul>
+    <div class="callout">
+      <strong>Important:</strong> Clearly communicate to users in the UI and Terms of Service how their photos are used, stored, and deleted. This is critical for trust in a photo-sensitive app.
+    </div>
+  </div>
+
+  <!-- S10: ROADMAP -->
+  <div class="section" id="s10">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>Roadmap</h2>
+    </div>
+
+    <div class="phase">
+      <h4>🚀 Phase 1 — MVP (Weeks 1–8)</h4>
+      <div class="phase-duration">Goal: Working product with core try-on flow</div>
+      <ul>
+        <li>Next.js app setup on Vercel with Supabase integration</li>
+        <li>User auth (Google + email magic link)</li>
+        <li>3 input modes: direct photo upload, product URL, generic URL</li>
+        <li>URL scraping for Myntra, Flipkart, Amazon.in, Meesho, AJIO</li>
+        <li>Fashn.ai API integration + job queue</li>
+        <li>GCP bucket for result storage + CDN</li>
+        <li>Result page: view, download, share link</li>
+        <li>Basic credit system (free: 5 try-ons)</li>
+        <li>Mobile-responsive UI</li>
+      </ul>
+    </div>
+
+    <div class="phase p2">
+      <h4>✨ Phase 2 — Growth (Weeks 9–16)</h4>
+      <div class="phase-duration">Goal: Retention features + Instagram support</div>
+      <ul>
+        <li>Instagram URL support (Playwright-based scraping)</li>
+        <li>Virtual wardrobe / outfit board</li>
+        <li>Side-by-side comparison slider</li>
+        <li>Outfit tagging and search in wardrobe</li>
+        <li>Pro subscription (Razorpay / Stripe)</li>
+        <li>Email notifications on job completion</li>
+        <li>Referral programme</li>
+        <li>Quality feedback loop to improve AI prompts</li>
+      </ul>
+    </div>
+
+    <div class="phase p3">
+      <h4>🌐 Phase 3 — Scale (Months 5–9)</h4>
+      <div class="phase-duration">Goal: B2B + browser extension + API</div>
+      <ul>
+        <li>Chrome/Firefox browser extension (try-on on any site)</li>
+        <li>B2B white-label API for fashion brands</li>
+        <li>Multi-garment try-on (mix top + bottom)</li>
+        <li>Size recommendation based on body measurements</li>
+        <li>Android/iOS app (React Native)</li>
+        <li>Affiliate programme with Indian e-commerce platforms</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- S11: RISKS -->
+  <div class="section" id="s11">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <h2>Risks &amp; Mitigations</h2>
+    </div>
+    <table class="risk-row">
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Myntra/Flipkart blocks scraping (anti-bot)</td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td><span class="badge-pill badge-red">High</span></td>
+          <td>Use rotating proxies; partner with platforms for API access; fall back to user uploading product image manually</td>
+        </tr>
+        <tr>
+          <td>Fashn.ai quality issues on Indian skin tones / body types</td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td>Run quality benchmarks pre-launch; collect feedback; explore fine-tuning or alternative models if needed</td>
+        </tr>
+        <tr>
+          <td>Fashn.ai API downtime</td>
+          <td><span class="badge-pill badge-green">Low</span></td>
+          <td><span class="badge-pill badge-red">High</span></td>
+          <td>Queue jobs with retry logic; show "processing" state gracefully; evaluate Replicate as backup</td>
+        </tr>
+        <tr>
+          <td>High GCP egress costs at scale</td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td>Use CDN caching aggressively; compress images; move to Cloudflare R2 for cost savings at scale</td>
+        </tr>
+        <tr>
+          <td>Privacy concerns around user photos</td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td><span class="badge-pill badge-red">High</span></td>
+          <td>Auto-delete photos within 24h; clear privacy policy; no facial data storage; signed private URLs only</td>
+        </tr>
+        <tr>
+          <td>Misuse (uploading photos of others)</td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td><span class="badge-pill badge-yellow">Medium</span></td>
+          <td>Terms of Service, NSFW filtering, reporting mechanism, rate limiting, account bans</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- S12: KPIS -->
+  <div class="section" id="s12">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <h2>Success Metrics (KPIs)</h2>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h4>Try-On Completion Rate</h4>
+        <p>Target: &gt;85% of submitted jobs complete successfully (no errors)</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⏱️</div>
+        <h4>P90 Latency</h4>
+        <p>Target: Result delivered within 30 seconds for 90% of jobs</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⭐</div>
+        <h4>Quality Rating</h4>
+        <p>Target: Average user rating ≥ 4.0 / 5.0 on try-on quality</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <h4>D7 Retention</h4>
+        <p>Target: 30%+ of users return within 7 days of first try-on</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💰</div>
+        <h4>Free → Pro Conversion</h4>
+        <p>Target: 5% of free users upgrade to Pro within 30 days</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h4>Monthly Active Try-Ons</h4>
+        <p>Target: 10,000 try-ons/month by end of Month 3 post-launch</p>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+  <div class="footer">
+    TryAndFit PRD v1.0 — Confidential &amp; Internal Use Only · Built for the Indian fashion market · Stack: Next.js · Vercel · Supabase · GCP · Fashn.ai
+  </div>
+
+</div>
+</body>
+</html>
