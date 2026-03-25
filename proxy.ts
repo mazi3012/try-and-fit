@@ -1,9 +1,10 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "./utils/supabase/session";
+import { NextResponse, type NextRequest } from "next/server";
+// import { updateSession } from "./utils/supabase/session";
 
 export async function proxy(request: NextRequest) {
-  return await updateSession(request);
+  return NextResponse.next();
 }
+
 
 export const config = {
   matcher: [
