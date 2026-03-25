@@ -24,10 +24,30 @@ logToFile(`ENV CHECK: project=${project}, location=${location}, model=${tunedMod
 
 // Auth utility for Google AI
 const { GoogleAuth } = require('google-auth-library');
-const auth = new GoogleAuth({
-  keyFile: path.join(process.cwd(), 'service_account.json'),
+
+let authOptions: any = {
   scopes: ['https://www.googleapis.com/auth/generative-language']
-});
+};
+
+if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+  try {
+    authOptions.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    logToFile('Using Service Account from environment variable');
+  } catch (e) {
+    logToFile('Error parsing GOOGLE_SERVICE_ACCOUNT_JSON env var');
+  }
+} else {
+  const saPath = path.join(process.cwd(), 'service_account.json');
+  if (fs.existsSync(saPath)) {
+    authOptions.keyFile = saPath;
+    logToFile('Using Service Account from local file');
+  } else {
+    logToFile('WARNING: No service account found (neither env nor file)');
+  }
+}
+
+const auth = new GoogleAuth(authOptions);
+
 
 export async function POST(req: NextRequest) {
   let jobId: string | null = null;

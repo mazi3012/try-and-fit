@@ -77,12 +77,23 @@ export default function ResultPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Comparison Section */}
         <div className="space-y-4">
-           <div className="relative aspect-[3/4] overflow-hidden rounded-[32px] shadow-2xl group">
-              <img 
-                src={resultImageUrl || job.resultImage || job.outfitImage} 
-                alt="Transformation" 
-                className="h-full w-full object-cover"
-              />
+          <div className="relative aspect-[3/4] overflow-hidden rounded-[32px] shadow-2xl group bg-white/5">
+              {(resultImageUrl || job.resultImage) ? (
+                <img 
+                  src={resultImageUrl || resultImageUrl /* This will be resolved in useEffect */} 
+                  alt="Transformation" 
+                  className={cn(
+                    "h-full w-full object-cover transition-opacity duration-500",
+                    resultImageUrl ? "opacity-100" : "opacity-0"
+                  )}
+                />
+
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+                </div>
+              )}
+
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-8 left-8">
                  <div className="flex items-center gap-2 rounded-full bg-brand px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
@@ -93,22 +104,37 @@ export default function ResultPage() {
               </div>
            </div>
            
-           <div className="flex gap-4">
-              <GlassCard className="flex flex-1 items-center gap-4 p-4">
-                 <img src={userImageUrl || job.userImage} className="h-12 w-12 rounded-lg object-cover" alt="Source" />
-                 <div>
+            <div className="flex gap-4">
+              <GlassCard className="flex flex-1 items-center gap-4 p-4 min-w-0">
+                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white/5">
+                   {userImageUrl && (
+                     <img src={userImageUrl} className="h-full w-full object-cover" alt="Source" />
+                   )}
+                 </div>
+                 <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted font-black">Source Portrait</p>
-                    <p className="text-xs font-medium text-white/80">Captured Profile</p>
+                    <p className="truncate text-xs font-medium text-white/80">Captured Profile</p>
                  </div>
               </GlassCard>
-              <GlassCard className="flex flex-1 items-center gap-4 p-4">
-                 <img src={job.outfitImage} className="h-12 w-12 rounded-lg object-cover border border-white/10" alt="Garment" />
-                 <div>
+              <GlassCard className="flex flex-1 items-center gap-4 p-4 min-w-0">
+                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white/5 border border-white/10">
+                   {/* In this case outfitImage might be a scrapped URL or needs resolving. 
+                       For simplicity, let's just show it if it's a valid URL or wait for it. */}
+                   {job.outfitImage && (job.outfitImage.startsWith('http') || job.outfitImage.startsWith('blob:')) ? (
+                     <img src={job.outfitImage} className="h-full w-full object-cover" alt="Garment" />
+                   ) : (
+                     <div className="flex h-full w-full items-center justify-center text-muted">
+                       <Shirt className="h-4 w-4 opacity-20" />
+                     </div>
+                   )}
+                 </div>
+                 <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted font-black">Target Garment</p>
-                    <p className="text-xs font-medium text-white/80">Selected Item</p>
+                    <p className="truncate text-xs font-medium text-white/80">Selected Item</p>
                  </div>
               </GlassCard>
            </div>
+
         </div>
 
         {/* Actions Section */}

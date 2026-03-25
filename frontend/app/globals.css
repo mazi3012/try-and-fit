@@ -39,8 +39,9 @@ body {
   min-height: 100dvh;
   background: radial-gradient(circle at top right, rgba(124, 77, 255, 0.05), transparent 40%),
               radial-gradient(circle at bottom left, rgba(255, 64, 129, 0.05), transparent 40%);
-  background-attachment: fixed;
+  background-attachment: scroll;
 }
+
 
 /* Premium Card */
 .card {
@@ -119,5 +120,7 @@ body {
 .text-gradient {
   background: linear-gradient(135deg, white, #a78bfa);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
