@@ -60,12 +60,12 @@ export default function CheckoutPage() {
   return (
     <div className="flex flex-col gap-10 py-6 pb-20">
        <header className="flex items-center gap-4">
-          <Link href="/cart" className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 border border-white/5 text-muted hover:text-cream transition-all">
+          <Link href="/cart" className="h-10 w-10 flex items-center justify-center rounded-full bg-black/5 border border-black/5 text-muted hover:text-black transition-all">
              <ArrowLeft size={18} />
           </Link>
           <div className="flex flex-col">
-             <p className="text-[10px] font-black uppercase tracking-widest text-brand">Final Step</p>
-             <h1 className="text-3xl font-black text-cream">SECURE <span className="text-brand">CHECKOUT</span></h1>
+             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand">Final Step</p>
+             <h1 className="text-3xl font-black text-black uppercase italic tracking-tighter">SECURE <span className="text-brand">CHECKOUT</span></h1>
           </div>
        </header>
 
@@ -74,8 +74,8 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 flex flex-col gap-8">
              <section className="flex flex-col gap-6">
                 <div className="flex items-center gap-3">
-                   <div className="h-6 w-6 rounded-full bg-brand flex items-center justify-center text-[10px] font-black">01</div>
-                   <h2 className="text-lg font-black uppercase tracking-tight text-cream">Shipping Details</h2>
+                   <div className="h-6 w-6 rounded-full bg-black flex items-center justify-center text-[10px] font-black text-white italic tracking-tighter">01</div>
+                   <h2 className="text-lg font-black uppercase tracking-tighter italic text-black">Shipping Details</h2>
                 </div>
                 
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -104,20 +104,20 @@ export default function CheckoutPage() {
 
              <section className="flex flex-col gap-6">
                 <div className="flex items-center gap-3">
-                   <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black text-muted">02</div>
-                   <h2 className="text-lg font-black uppercase tracking-tight text-cream">Payment Method</h2>
+                   <div className="h-6 w-6 rounded-full bg-black/5 flex items-center justify-center text-[10px] font-black text-muted italic tracking-tighter">02</div>
+                   <h2 className="text-lg font-black uppercase tracking-tighter italic text-black">Payment Method</h2>
                 </div>
                 <div className="p-4 border border-brand/40 bg-brand/5 rounded-xl flex items-center justify-between">
                    <div className="flex items-center gap-4">
                       <CreditCard className="text-brand" size={24} />
                       <div>
-                         <p className="text-sm font-bold text-cream">Cash on Delivery (COD)</p>
-                         <p className="text-[10px] text-muted font-medium">Pay securely at your doorstep</p>
+                         <p className="text-sm font-black text-black">Cash on Delivery (COD)</p>
+                         <p className="text-[10px] text-muted font-bold uppercase tracking-widest">Pay securely at your doorstep</p>
                       </div>
                    </div>
                    <CheckCircle className="text-brand" size={20} />
                 </div>
-                <p className="text-[10px] text-muted leading-relaxed">
+                <p className="text-[10px] text-muted leading-relaxed font-medium">
                    Looking for online payments? Razorpay integration coming soon in the next collection drop.
                 </p>
              </section>
@@ -125,36 +125,36 @@ export default function CheckoutPage() {
 
           {/* Summary */}
           <div className="flex flex-col gap-6">
-             <GlassCard className="p-6 bg-white border-black/5 flex flex-col gap-6 sticky top-24">
+             <GlassCard className="p-6 bg-white border-black/5 flex flex-col gap-6 sticky top-24 shadow-2xl">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted/60 border-b border-black/5 pb-4">Order Summary</h3>
                 
                 <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
                    {items.map(item => (
                       <div key={item.id} className="flex gap-3">
-                         <div className="h-14 w-12 rounded bg-black shrink-0 overflow-hidden border border-white/10">
+                         <div className="h-14 w-12 rounded bg-gray-50 shrink-0 overflow-hidden border border-black/5">
                             <img src={item.product.image_url} className="h-full w-full object-cover" />
                          </div>
                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-bold text-cream truncate">{item.product.name}</p>
-                            <p className="text-[9px] text-muted uppercase">Size: {item.size} • Qty: {item.quantity}</p>
+                            <p className="text-[10px] font-black text-black uppercase italic truncate">{item.product.name}</p>
+                            <p className="text-[9px] text-muted font-bold uppercase tracking-widest">Size: {item.size} • Qty: {item.quantity}</p>
                             <p className="text-[10px] font-black text-brand mt-1">₹{item.product.price * item.quantity}</p>
                          </div>
                       </div>
                    ))}
                 </div>
 
-                <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
+                <div className="flex flex-col gap-2 pt-4 border-t border-black/5">
                    <div className="flex justify-between text-xs">
-                      <span className="text-muted">Subtotal</span>
-                      <span className="text-cream font-bold">₹{total}</span>
+                      <span className="text-muted font-bold uppercase text-[9px] tracking-widest">Subtotal</span>
+                      <span className="text-black font-black">₹{total}</span>
                    </div>
                    <div className="flex justify-between text-xs">
-                      <span className="text-muted">Shipping</span>
-                      <span className="text-accent font-bold uppercase text-[9px]">Free</span>
+                      <span className="text-muted font-bold uppercase text-[9px] tracking-widest">Shipping</span>
+                      <span className="text-accent font-black uppercase text-[9px]">Free</span>
                    </div>
                    <div className="flex justify-between items-baseline mt-4">
-                      <span className="text-sm font-black uppercase tracking-widest text-cream">Total</span>
-                      <span className="text-2xl font-black text-brand">₹{total}</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black">Total</span>
+                      <span className="text-2xl font-black text-brand tracking-tighter">₹{total}</span>
                    </div>
                 </div>
 
