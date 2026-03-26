@@ -1,39 +1,80 @@
 @echo off
-title Try-and-Fit - Local Dev Server
-color 0B
+title Franky Fashion - Dev Server
+color 0A
 
 echo.
-echo  =====================================================
-echo       TRY-AND-FIT - LOCAL DEVELOPMENT SERVER
-echo  =====================================================
+echo  ============================================================
+echo    FRANKY FASHION  ^|  TRYANDFIT  ^|  DEV SERVER
+echo  ============================================================
 echo.
 
-:: Check Node.js is available
+:: ── Check Node.js ─────────────────────────────────────────────
 where node >nul 2>&1
 if %errorlevel% neq 0 (
-    echo  [ERROR] Node.js is not found in PATH. Please install Node.js 18+.
+    echo  [ERROR] Node.js not found. Install Node.js 18+ from nodejs.org
     pause
     exit /b 1
 )
 
-:: Navigate to frontend directory
-cd /d "%~dp0frontend"
+for /f "tokens=*" %%v in ('node -v') do set NODE_VER=%%v
+echo  Node.js : %NODE_VER%
 
-:: Check if frontend node_modules exist
-if not exist "node_modules" (
-    echo  [INFO] node_modules not found. Running npm install...
-    call npm install
+:: ── Navigate to project root (same folder as this bat file) ───
+cd /d "%~dp0"
+
+:: ── Check .env.local ──────────────────────────────────────────
+if not exist ".env.local" (
+    echo.
+    echo  [WARNING] .env.local not found!
+    echo  Create .env.local with:
+    echo    NEXT_PUBLIC_SUPABASE_URL=...
+    echo    NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+    echo    VERTEX_AI_PROJECT_ID=...
+    echo    VERTEX_AI_LOCATION=...
+    echo.
+    echo  Press any key to start anyway ^(app may have limited functionality^)
+    pause >nul
 )
 
-echo Starting Frontend (Next.js) ...
-echo URL: http://localhost:3000
+:: ── Install dependencies if needed ────────────────────────────
+if not exist "node_modules" (
+    echo.
+    echo  [INFO] node_modules not found. Installing dependencies...
+    echo  This may take a few minutes on first run.
+    echo.
+    call npm install
+    if %errorlevel% neq 0 (
+        echo  [ERROR] npm install failed. Check your internet connection.
+        pause
+        exit /b 1
+    )
+)
+
+:: ── Check if port 3000 is already in use ──────────────────────
+netstat -ano | findstr ":3000" >nul 2>&1
+if %errorlevel% equ 0 (
+    echo.
+    echo  [WARNING] Port 3000 is already in use.
+    echo  The server will try the next available port.
+    echo.
+)
+
+echo.
+echo  ============================================================
+echo   Starting Franky Fashion...
+echo   App URL  : http://localhost:3000
+echo   Admin    : http://localhost:3000/admin/dashboard
+echo   Seller   : http://localhost:3000/seller/dashboard
+echo  ============================================================
+echo.
+echo  Press Ctrl+C to stop the server.
 echo.
 
-:: Run npm run dev and keep the window open on crash
+:: ── Start Next.js dev server ──────────────────────────────────
 call npm run dev
 
 echo.
-echo  =====================================================
-echo   Frontend stopped. Press any key to exit.
-echo  =====================================================
+echo  ============================================================
+echo   Server stopped. Press any key to exit.
+echo  ============================================================
 pause
