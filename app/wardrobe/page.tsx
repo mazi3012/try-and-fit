@@ -1,90 +1,146 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { Sparkles, Trash2, ShoppingBag, ArrowUpRight } from "lucide-react";
-import { PremiumButton } from "@/components/ui/premium-button";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { listWardrobe, removeWardrobe } from "@/lib/mock-api";
-import type { WardrobeItem } from "@/lib/types";
+import { Sparkles, ShoppingBag, Zap, Grid3X3, Calendar, Tag } from "lucide-react";
+import WardrobeGrid from "./_components/wardrobe-grid";
 
-export default function WardrobePage() {
-  const [items, setItems] = useState<WardrobeItem[]>([]);
+export default async function WardrobePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/");
 
-  useEffect(() => {
-    setItems(listWardrobe());
-  }, []);
+  // Fetch all completed tryon_jobs for this user — wardrobe = saved ones
+  const { data: allJobs } = await supabase
+    .from("tryon_jobs")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false });
 
-  const onDelete = (id: string) => {
-    removeWardrobe(id);
-    setItems(listWardrobe());
-  };
+  const wardrobe = (allJobs ?? []).filter((j: any) => j.saved_to_wardrobe);
+  const history = allJobs ?? [];
+
+  // Stats
+  const categories = [...new Set(wardrobe.map((j: any) => j.category).filter(Boolean))];
+  const totalTryOns = history.length;
+  const saved = wardrobe.length;
 
   return (
-    <div className="flex flex-col gap-8 py-6">
-      <header className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 text-brand">
-          <Sparkles size={16} />
-          <span className="text-[10px] font-black uppercase tracking-[0.25em]">Your Private Gallery</span>
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-[#111] uppercase">
-          THE <span className="text-brand">WARDROBE</span>
-        </h1>
-        <p className="max-w-xl text-[#888] text-sm font-medium">
-          All your AI-rendered looks are stored here. Revisit your trials, share them, or buy the ones that fit your vibe.
-        </p>
-      </header>
+    <div className="w-full">
+      {/* ── HERO HEADER — dark full-bleed ─────────────────────── */}
+      <div className="w-full bg-[#0A0A0A] relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute -top-24 left-1/4 h-64 w-64 rounded-full bg-brand/20 blur-[80px] pointer-events-none" />
+        <div className="absolute top-0 right-1/3 h-48 w-48 rounded-full bg-purple-500/10 blur-[60px] pointer-events-none" />
 
-      {items.length === 0 ? (
-        <div className="py-24 border border-dashed border-black/10 rounded-2xl bg-white flex flex-col items-center justify-center gap-6 text-center">
-          <div className="h-16 w-16 bg-[#F7F7F7] rounded-full flex items-center justify-center text-[#888] border border-black/5">
-            <ShoppingBag size={24} />
+        <div className="px-4 sm:px-8 lg:px-12 xl:px-16 py-10 max-w-screen-2xl mx-auto relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-6 w-6 rounded-full bg-brand/20 flex items-center justify-center">
+                  <Sparkles size={12} className="text-brand" />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-[0.35em] text-brand">Digital Closet · AI Edition</span>
+              </div>
+              <h1 className="text-5xl sm:text-6xl font-black text-white uppercase tracking-tighter leading-[0.85]">
+                MY<br /><span className="text-brand">WARDROBE</span>
+              </h1>
+              <p className="text-sm text-white/40 font-medium mt-2 max-w-xs">
+                Your AI-curated digital closet. Every look you've tried and loved, organized for you.
+              </p>
+            </div>
+
+            {/* Stats row */}
+            <div className="flex gap-4">
+              {[
+                { icon: <Sparkles size={14} />, val: saved, label: "Saved Looks" },
+                { icon: <Zap size={14} />, val: totalTryOns, label: "Try-Ons" },
+                { icon: <Tag size={14} />, val: categories.length, label: "Categories" },
+              ].map(s => (
+                <div key={s.label} className="text-center">
+                  <div className="flex items-center justify-center gap-1 text-brand mb-0.5">{s.icon}</div>
+                  <p className="text-2xl font-black text-white">{s.val}</p>
+                  <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <p className="font-black text-[#111] uppercase text-sm">No saved looks yet.</p>
-            <p className="text-xs text-[#888] font-medium">Head to the studio to create some magic.</p>
-          </div>
-          <Link href="/try-on">
-            <PremiumButton size="md" className="h-11 px-8">Go to Studio</PremiumButton>
-          </Link>
+
+          {/* Category chips */}
+          {categories.length > 0 && (
+            <div className="flex gap-2 mt-5 overflow-x-auto scrollbar-hide">
+              {categories.map(cat => (
+                <span key={cat} className="flex-shrink-0 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black text-white/60 uppercase tracking-widest">
+                  {cat}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item: WardrobeItem) => (
-            <div key={item.id} className="bg-white border border-black/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all group">
-              <div className="relative aspect-[4/5]">
-                <img src={item.resultImage} alt={item.outfitName} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <button
-                  type="button"
-                  onClick={() => onDelete(item.id)}
-                  className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-[#888] hover:text-red-500 border border-black/5 shadow-sm transition-all"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-              <div className="p-3 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-xs font-black text-[#111] uppercase tracking-tight group-hover:text-brand transition-colors">{item.outfitName}</h3>
-                  <span className="text-[8px] font-bold text-[#888] uppercase tracking-widest">
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {item.buyUrl && (
-                    <Link href={item.buyUrl} className="flex-1">
-                      <PremiumButton variant="outline" size="sm" className="w-full h-9 text-[10px]" icon={<ArrowUpRight size={12} />}>
-                        Buy
-                      </PremiumButton>
-                    </Link>
-                  )}
-                  <PremiumButton variant="outline" size="sm" className="flex-1 h-9 text-[10px]">
-                    Share
-                  </PremiumButton>
-                </div>
-              </div>
+      </div>
+
+      {/* ── TABS ───────────────────────────────────────────────── */}
+      <div className="w-full bg-white border-b border-black/5 px-4 sm:px-8 lg:px-12 xl:px-16">
+        <div className="max-w-screen-2xl mx-auto flex gap-1 py-2">
+          {[
+            { id: "saved", icon: <Grid3X3 size={12} />, label: `Saved (${saved})` },
+            { id: "history", icon: <Calendar size={12} />, label: `History (${totalTryOns})` },
+          ].map(tab => (
+            <div key={tab.id} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand text-white text-[10px] font-black uppercase tracking-widest first:bg-brand first:text-white [&:not(:first-child)]:bg-transparent [&:not(:first-child)]:text-[#888]">
+              {tab.icon} {tab.label}
             </div>
           ))}
         </div>
-      )}
+      </div>
+
+      {/* ── MAIN CONTENT ───────────────────────────────────────── */}
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-16 py-8 max-w-screen-2xl mx-auto">
+        {wardrobe.length === 0 ? (
+          /* Empty state */
+          <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
+            <div className="relative">
+              <div className="h-24 w-24 rounded-3xl bg-[#F0F0F0] flex items-center justify-center">
+                <ShoppingBag size={36} className="text-[#ccc]" />
+              </div>
+              <div className="absolute -top-2 -right-2 h-8 w-8 bg-brand rounded-full flex items-center justify-center shadow-lg shadow-brand/30">
+                <Sparkles size={14} className="text-white" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-[#111] uppercase tracking-tighter mb-2">
+                Your Digital Closet is Empty
+              </h2>
+              <p className="text-sm text-[#888] font-medium max-w-xs mx-auto">
+                Try on any outfit in the Studio. When you love a look, save it — it'll appear here.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/try-on">
+                <button className="h-12 px-8 rounded-xl bg-brand text-white text-sm font-black uppercase tracking-widest hover:bg-brand/90 transition-colors shadow-xl shadow-brand/20 flex items-center gap-2">
+                  <Sparkles size={16} /> Open Studio
+                </button>
+              </Link>
+              <Link href="/shop">
+                <button className="h-12 px-8 rounded-xl border border-black/10 text-[#555] text-sm font-black uppercase tracking-widest hover:border-brand hover:text-brand transition-all">
+                  Browse Shop
+                </button>
+              </Link>
+            </div>
+
+            {/* History still shown if try-ons exist */}
+            {history.length > 0 && (
+              <div className="w-full mt-8">
+                <h3 className="text-left text-xs font-black uppercase tracking-widest text-[#888] mb-4 flex items-center gap-2">
+                  <Calendar size={12} /> Recent Try-Ons (unsaved)
+                </h3>
+                <WardrobeGrid jobs={history} mode="history" />
+              </div>
+            )}
+          </div>
+        ) : (
+          <WardrobeGrid jobs={wardrobe} mode="saved" />
+        )}
+      </div>
     </div>
   );
 }

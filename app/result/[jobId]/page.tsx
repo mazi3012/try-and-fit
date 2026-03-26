@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Download, Share2, ShoppingBag, ArrowLeft, Star, Heart, CheckCircle2, Shirt } from "lucide-react";
+import {
+  Download, Share2, ShoppingBag, ArrowLeft,
+  Star, Heart, CheckCircle2, Shirt, Sparkles, Loader2
+} from "lucide-react";
 import { getTryOnJob, getImageUrl } from "@/lib/supabase-api";
-import { GlassCard } from "@/components/ui/glass-card";
-import { PremiumButton } from "@/components/ui/premium-button";
 import { cn } from "@/lib/utils";
 import type { TryOnJob } from "@/lib/types";
+
+const CATEGORIES = [
+  "Tops", "Dresses", "Ethnic", "Denim", "Casual", "Formal", "Sports", "Accessories"
+];
 
 export default function ResultPage() {
   const params = useParams<{ jobId: string }>();
@@ -16,192 +21,240 @@ export default function ResultPage() {
   const [userImageUrl, setUserImageUrl] = useState("");
   const [resultImageUrl, setResultImageUrl] = useState("");
   const [saved, setSaved] = useState(false);
-  const [rating, setRating] = useState(4);
+  const [saving, setSaving] = useState(false);
+  const [outfitName, setOutfitName] = useState("My Look");
+  const [category, setCategory] = useState("Casual");
+  const [rating, setRating] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   useEffect(() => {
     getTryOnJob(params.jobId).then(async (current) => {
       if (!current) return;
       setJob(current);
-      
-      const u1 = await getImageUrl(current.userImage, 'user-images');
+      setSaved(!!(current as any).saved_to_wardrobe);
+      if ((current as any).outfit_name) setOutfitName((current as any).outfit_name);
+
+      const u1 = await getImageUrl(current.userImage, "user-images");
       setUserImageUrl(u1);
-      
       if (current.resultImage) {
-        const u2 = await getImageUrl(current.resultImage, 'results');
+        const u2 = await getImageUrl(current.resultImage, "results");
         setResultImageUrl(u2);
       }
     });
   }, [params.jobId]);
 
-  if (!job) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-        <p className="text-sm font-medium text-muted">Retrieving your masterpiece...</p>
-      </div>
-    );
-  }
-
-  const onSave = () => {
-    setSaved(true);
-    // Real logic would update wardrobe in Supabase
+  const onSave = async () => {
+    if (saved || saving || !job) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/wardrobe/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId: job.id, outfitName, category }),
+      });
+      if (res.ok) setSaved(true);
+    } catch (e) { console.error(e); }
+    finally { setSaving(false); }
   };
 
   const onShare = async () => {
-    const shareUrl = window.location.href;
-    await navigator.clipboard.writeText(shareUrl);
-    alert("Share link copied to clipboard!");
+    await navigator.clipboard.writeText(window.location.href);
+    alert("Link copied to clipboard!");
   };
 
   const onDownload = () => {
     if (!resultImageUrl) return;
-    const link = document.createElement("a");
-    link.href = resultImageUrl;
-    link.download = `tryandfit-${job.id}.jpg`;
-    link.click();
+    const a = document.createElement("a");
+    a.href = resultImageUrl;
+    a.download = `tryandfit-${job?.id}.jpg`;
+    a.click();
   };
 
+  if (!job) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+        <p className="text-sm font-bold text-[#888]">Retrieving your look...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-6xl space-y-10 py-10">
-      <header className="flex flex-col items-center gap-4 text-center">
-        <Link 
-          href="/try-on" 
-          className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted hover:text-brand transition-colors"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          Back to studio
-        </Link>
-        <h1 className="text-4xl font-black tracking-tight text-gradient sm:text-6xl">Your Transformation</h1>
-      </header>
+    <div className="w-full">
+      {/* Header */}
+      <div className="w-full bg-white border-b border-black/5 px-4 sm:px-8 lg:px-12 xl:px-16 py-4">
+        <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
+          <Link href="/try-on" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#888] hover:text-brand transition-colors">
+            <ArrowLeft size={13} /> Back to Studio
+          </Link>
+          <div className="flex items-center gap-2 text-brand">
+            <Sparkles size={13} />
+            <span className="text-[10px] font-black uppercase tracking-widest">AI Result</span>
+          </div>
+        </div>
+      </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Comparison Section */}
-        <div className="space-y-4">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-[32px] shadow-2xl group bg-white/5">
-              {(resultImageUrl || job.resultImage) ? (
-                <img 
-                  src={resultImageUrl || resultImageUrl /* This will be resolved in useEffect */} 
-                  alt="Transformation" 
-                  className={cn(
-                    "h-full w-full object-cover transition-opacity duration-500",
-                    resultImageUrl ? "opacity-100" : "opacity-0"
-                  )}
-                />
+      <div className="px-4 sm:px-8 lg:px-12 xl:px-16 py-8 max-w-screen-2xl mx-auto">
+        <div className="grid gap-8 lg:grid-cols-5">
 
+          {/* Result Image — 3 cols */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-3xl shadow-xl bg-[#F0F0F0]">
+              {resultImageUrl ? (
+                <img src={resultImageUrl} alt="AI Result" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+                  <Loader2 className="animate-spin text-brand" size={32} />
                 </div>
               )}
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute bottom-8 left-8">
-                 <div className="flex items-center gap-2 rounded-full bg-brand px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
-                    <CheckCircle2 className="h-3 w-3" />
-                    AI Rendered
-                 </div>
-                 <h2 className="mt-2 text-2xl font-black text-white">Final Look</h2>
+              {/* Overlay badge */}
+              <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md">
+                <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[10px] font-black text-[#111] uppercase tracking-wider">AI Rendered</span>
               </div>
-           </div>
-           
-            <div className="flex gap-4">
-              <GlassCard className="flex flex-1 items-center gap-4 p-4 min-w-0">
-                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white/5">
-                   {userImageUrl && (
-                     <img src={userImageUrl} className="h-full w-full object-cover" alt="Source" />
-                   )}
-                 </div>
-                 <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted font-black">Source Portrait</p>
-                    <p className="truncate text-xs font-medium text-white/80">Captured Profile</p>
-                 </div>
-              </GlassCard>
-              <GlassCard className="flex flex-1 items-center gap-4 p-4 min-w-0">
-                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white/5 border border-white/10">
-                   {/* In this case outfitImage might be a scrapped URL or needs resolving. 
-                       For simplicity, let's just show it if it's a valid URL or wait for it. */}
-                   {job.outfitImage && (job.outfitImage.startsWith('http') || job.outfitImage.startsWith('blob:')) ? (
-                     <img src={job.outfitImage} className="h-full w-full object-cover" alt="Garment" />
-                   ) : (
-                     <div className="flex h-full w-full items-center justify-center text-muted">
-                       <Shirt className="h-4 w-4 opacity-20" />
-                     </div>
-                   )}
-                 </div>
-                 <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted font-black">Target Garment</p>
-                    <p className="truncate text-xs font-medium text-white/80">Selected Item</p>
-                 </div>
-              </GlassCard>
-           </div>
+            </div>
 
-        </div>
+            {/* Before / After mini cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white border border-black/5 rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+                {userImageUrl && (
+                  <img src={userImageUrl} className="h-14 w-12 object-cover rounded-xl shrink-0" alt="You" />
+                )}
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[#888]">Your Photo</p>
+                  <p className="text-xs font-black text-[#111]">Original</p>
+                </div>
+              </div>
+              <div className="bg-white border border-black/5 rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+                {job.outfitImage && job.outfitImage.startsWith("http") && (
+                  <img src={job.outfitImage} className="h-14 w-12 object-cover rounded-xl shrink-0" alt="Outfit" />
+                )}
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[#888]">Outfit Used</p>
+                  <p className="text-xs font-black text-[#111]">Selected Item</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Actions Section */}
-        <div className="flex flex-col gap-6">
-           <GlassCard className="flex flex-col gap-6 p-8">
-              <div className="space-y-4">
-                 <h3 className="text-xl font-bold">Love this look?</h3>
-                 <p className="text-sm leading-relaxed text-muted">
-                   Our Gemini AI has seamlessly merged the selected outfit with your portrait. You can now save it to your virtual wardrobe or share it with friends.
-                 </p>
+          {/* Actions — 2 cols */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
+
+            {/* Save to Wardrobe card */}
+            <div className="bg-white border border-black/5 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-brand mb-1">Save this Look</p>
+                <h2 className="text-xl font-black text-[#111] uppercase tracking-tight">Love it? Keep it.</h2>
+                <p className="text-xs text-[#888] font-medium mt-1">Name your outfit and save it to your digital wardrobe.</p>
               </div>
 
               <div className="flex flex-col gap-3">
-                 <PremiumButton onClick={onSave} className="w-full justify-between" icon={saved ? <CheckCircle2 className="h-5 w-5" /> : <Heart className="h-5 w-5" />}>
-                   {saved ? "Added to Wardrobe" : "Save to Wardrobe"}
-                 </PremiumButton>
-                 <div className="flex gap-3">
-                    <PremiumButton variant="outline" className="flex-1" icon={<Download className="h-4 w-4" />} onClick={onDownload}>
-                      Download
-                    </PremiumButton>
-                    <PremiumButton variant="outline" className="flex-1" icon={<Share2 className="h-4 w-4" />} onClick={onShare}>
-                      Share
-                    </PremiumButton>
-                 </div>
-              </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-[#888] block mb-1">Outfit Name</label>
+                  <input
+                    value={outfitName}
+                    onChange={e => setOutfitName(e.target.value)}
+                    disabled={saved}
+                    className="input text-sm h-10"
+                    placeholder="e.g. Date Night Look"
+                  />
+                </div>
 
+                <div>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-[#888] block mb-1">Category</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {CATEGORIES.map(c => (
+                      <button
+                        key={c}
+                        disabled={saved}
+                        onClick={() => setCategory(c)}
+                        className={cn(
+                          "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all",
+                          category === c
+                            ? "bg-brand text-white border-brand"
+                            : "border-black/10 text-[#888] hover:border-brand/40"
+                        )}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={onSave}
+                  disabled={saved || saving}
+                  className={cn(
+                    "w-full h-12 rounded-xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
+                    saved
+                      ? "bg-green-50 text-green-600 border border-green-200 cursor-default"
+                      : "bg-brand text-white hover:bg-brand/90 shadow-xl shadow-brand/20"
+                  )}
+                >
+                  {saving ? <Loader2 size={16} className="animate-spin" /> :
+                    saved ? <><CheckCircle2 size={16} /> Saved to Wardrobe</> :
+                    <><Heart size={16} /> Save to Wardrobe</>}
+                </button>
+
+                {saved && (
+                  <Link href="/wardrobe" className="text-center text-[10px] font-black uppercase tracking-widest text-brand hover:underline">
+                    View My Wardrobe →
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-white border border-black/5 rounded-3xl p-5 shadow-sm flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={onDownload} className="h-11 rounded-xl border border-black/10 text-xs font-black uppercase tracking-widest text-[#555] flex items-center justify-center gap-2 hover:border-brand hover:text-brand transition-all">
+                  <Download size={14} /> Download
+                </button>
+                <button onClick={onShare} className="h-11 rounded-xl border border-black/10 text-xs font-black uppercase tracking-widest text-[#555] flex items-center justify-center gap-2 hover:border-brand hover:text-brand transition-all">
+                  <Share2 size={14} /> Share
+                </button>
+              </div>
               {job.buyUrl && (
-                <a href={job.buyUrl} target="_blank" rel="noreferrer" className="block">
-                  <PremiumButton variant="ghost" className="w-full border border-dashed border-white/10 text-brand" icon={<ShoppingBag className="h-4 w-4" />}>
-                    Shop this Outfit
-                  </PremiumButton>
+                <a href={job.buyUrl} target="_blank" rel="noreferrer">
+                  <button className="w-full h-11 rounded-xl border border-dashed border-brand/30 text-brand text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand/5 transition-all">
+                    <ShoppingBag size={14} /> Shop This Outfit
+                  </button>
                 </a>
               )}
-           </GlassCard>
+            </div>
 
-           <GlassCard className="p-8">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-muted">Quality Feedback</h4>
-              <p className="mt-2 text-xs text-muted">Help us improve the AI by rating this generation.</p>
-              
-              <div className="mt-6 flex items-center justify-between">
-                 <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                       <button
-                         key={s}
-                         onClick={() => setRating(s)}
-                         className={cn(
-                           "h-10 w-10 rounded-xl transition-all",
-                           s <= rating ? "bg-brand text-white shadow-lg shadow-brand/20" : "bg-white/5 text-muted hover:bg-white/10"
-                         )}
-                       >
-                          <Star className={cn("mx-auto h-4 w-4", s <= rating && "fill-current")} />
-                       </button>
-                    ))}
-                 </div>
-                 <PremiumButton variant="outline" size="sm">Submit</PremiumButton>
+            {/* Rating */}
+            <div className="bg-white border border-black/5 rounded-3xl p-5 shadow-sm">
+              <p className="text-[9px] font-black uppercase tracking-widest text-[#888] mb-3">Rate this AI Result</p>
+              <div className="flex items-center gap-2">
+                {[1,2,3,4,5].map(s => (
+                  <button
+                    key={s}
+                    disabled={ratingSubmitted}
+                    onClick={() => { setRating(s); setRatingSubmitted(true); }}
+                    className={cn(
+                      "h-10 w-10 rounded-xl transition-all",
+                      s <= rating ? "bg-brand text-white shadow-lg shadow-brand/20" : "bg-[#F7F7F7] text-[#aaa] hover:bg-brand/10"
+                    )}
+                  >
+                    <Star className={cn("mx-auto h-4 w-4", s <= rating && "fill-current")} />
+                  </button>
+                ))}
+                {ratingSubmitted && <span className="text-[10px] font-black text-green-500 uppercase tracking-widest ml-1">Thanks!</span>}
               </div>
-           </GlassCard>
+            </div>
 
-           <Link href="/try-on" className="group flex items-center justify-center gap-4 rounded-3xl bg-white/5 p-6 transition-all hover:bg-white/10 border border-white/5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white group-hover:scale-110 transition-transform">
-                 <Shirt className="h-6 w-6" />
+            {/* Try again */}
+            <Link href="/try-on" className="group bg-[#111] rounded-3xl p-5 flex items-center gap-4 hover:bg-brand transition-colors">
+              <div className="h-11 w-11 rounded-2xl bg-white/10 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                <Shirt size={20} />
               </div>
-              <div className="text-left">
-                 <p className="text-sm font-bold">Try another outfit</p>
-                 <p className="text-xs text-muted">Instantly swap garments on your photo</p>
+              <div className="text-white">
+                <p className="text-sm font-black uppercase tracking-tight">Try Another Outfit</p>
+                <p className="text-[10px] text-white/50 font-medium">Swap any garment instantly</p>
               </div>
-           </Link>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
