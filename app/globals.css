@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --surface: #141414;
-  --foreground: #FFF5E4;
-  --muted: #888888;
+  --background: #F8F9FA;
+  --surface: #FFFFFF;
+  --foreground: #0A0A0A;
+  --muted: #6B7280;
   --brand: #FF4D4D; /* Neon Coral */
-  --brand-light: rgba(255, 77, 77, 0.15);
-  --accent: #D4AF37; /* gold */
-  --border: rgba(255, 255, 255, 0.1);
-  --cream: #FFF5E4;
-  --jet-black: #0a0a0a;
+  --brand-light: rgba(255, 77, 77, 0.08);
+  --accent: #4ECDC4; /* Funky Mint */
+  --border: rgba(0, 0, 0, 0.05);
+  --cream: #0A0A0A; /* Inverting cream to obsidian for text */
+  --jet-black: #FFFFFF; /* Inverting jet black to white for background surfaces */
 }
 
 @theme inline {
@@ -25,7 +25,7 @@
   --color-cream: var(--cream);
   --color-jet-black: var(--jet-black);
   
-  --shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --shadow-premium: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
 }
 
 body {
@@ -43,8 +43,8 @@ h1, h2, h3, h4, .font-display {
 /* Page Shell */
 .page-shell {
   min-height: 100dvh;
-  background: radial-gradient(circle at 0% 0%, rgba(255, 77, 77, 0.05), transparent 40%),
-              radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05), transparent 40%);
+  background: radial-gradient(circle at 0% 0%, rgba(255, 77, 77, 0.03), transparent 30%),
+              radial-gradient(circle at 100% 100%, rgba(78, 205, 196, 0.03), transparent 30%);
   background-attachment: fixed;
 }
 
@@ -95,7 +95,7 @@ h1, h2, h3, h4, .font-display {
 }
 
 .btn-outline {
-  background: rgba(255, 255, 255, 0.03);
+  background: white;
   border: 1px solid var(--border);
   color: var(--foreground);
   transition: all 0.2s ease;
@@ -109,7 +109,7 @@ h1, h2, h3, h4, .font-display {
 /* Sleek Inputs */
 .input {
   width: 100%;
-  background: #1a1a1a;
+  background: #f1f3f5;
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 14px 18px;

@@ -21,8 +21,8 @@ export function PremiumButton({
 }: PremiumButtonProps) {
   const variants = {
     primary: "btn-primary",
-    outline: "btn-outline border-white/10 hover:border-brand/50",
-    ghost: "bg-transparent hover:bg-white/5 border-none",
+    outline: "btn-outline border-black/10 hover:border-brand/40",
+    ghost: "bg-transparent hover:bg-black/5 border-none",
   };
 
   const sizes = {
