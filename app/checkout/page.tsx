@@ -125,8 +125,8 @@ export default function CheckoutPage() {
 
           {/* Summary */}
           <div className="flex flex-col gap-6">
-             <GlassCard className="p-6 bg-surface border-white/5 flex flex-col gap-6 sticky top-24">
-                <h3 className="text-sm font-black uppercase tracking-widest text-muted border-b border-white/5 pb-4">Order Summary</h3>
+             <GlassCard className="p-6 bg-white border-black/5 flex flex-col gap-6 sticky top-24">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted/60 border-b border-black/5 pb-4">Order Summary</h3>
                 
                 <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
                    {items.map(item => (

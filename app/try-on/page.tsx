@@ -146,10 +146,10 @@ export default function TryOnPage() {
             <Sparkles className="h-2 w-2" />
             AI Powered
           </div>
-          <h1 className="text-xl font-black tracking-tight text-gradient leading-none">Try-On Studio</h1>
+        <h1 className="text-xl font-black tracking-tight text-black leading-none uppercase italic">Try-On <span className="text-brand">Studio</span></h1>
         </div>
-        <p className="max-w-xs text-right text-[10px] text-muted hidden md:block">
-          Portrait + Outfit = Instant Magic.
+        <p className="max-w-xs text-right text-[10px] text-muted font-bold uppercase tracking-tight hidden md:block">
+          Portrait + Outfit = Professional AI Synthesis.
         </p>
       </header>
 
@@ -181,7 +181,7 @@ export default function TryOnPage() {
             <span className="text-[9px] font-bold text-muted uppercase">Step 2</span>
           </div>
           
-          <div className="flex gap-1 rounded-lg bg-white/5 p-1 shrink-0">
+          <div className="flex gap-1 rounded-lg bg-black/5 p-1 shrink-0">
             {[
               { id: "photo", icon: <Camera className="h-3 w-3" /> },
               { id: "product_url", icon: <LinkIcon className="h-3 w-3" /> },
@@ -191,8 +191,8 @@ export default function TryOnPage() {
                 key={item.id}
                 onClick={() => setMode(item.id as InputMode)}
                 className={cn(
-                  "flex flex-1 items-center justify-center gap-2 rounded-md py-1.5 transition-all",
-                  mode === item.id ? "bg-white/10 text-white shadow-sm" : "text-muted hover:text-white"
+                  "flex flex-1 items-center justify-center gap-2 rounded-md py-1.5 transition-all text-[10px] font-black uppercase tracking-widest",
+                  mode === item.id ? "bg-black text-white shadow-sm" : "text-muted hover:text-black hover:bg-black/5"
                 )}
               >
                 {item.icon}
@@ -267,7 +267,7 @@ export default function TryOnPage() {
               {!authLoading && !user ? (
                 <PremiumButton 
                   size="lg" 
-                  className="w-full h-12 text-xs bg-white text-black hover:bg-white/90"
+                  className="w-full h-12 text-sm bg-black text-white hover:bg-black/90"
                   onClick={handleSignIn}
                   icon={<LogIn className="h-4 w-4" />}
                 >

@@ -25,8 +25,8 @@ export default function CartPage() {
            <ShoppingBag size={40} />
         </div>
         <div className="flex flex-col gap-2">
-           <h1 className="text-3xl font-black text-cream">YOUR BAG IS <span className="text-brand">EMPTY</span></h1>
-           <p className="text-muted text-sm px-10">Looks like you haven't added any heat to your wardrobe yet.</p>
+           <h1 className="text-3xl font-black text-black uppercase italic tracking-tighter">YOUR BAG IS <span className="text-brand">EMPTY</span></h1>
+           <p className="text-muted text-xs font-bold uppercase tracking-widest px-10">Looks like you haven't added any heat to your wardrobe yet.</p>
         </div>
         <Link href="/shop">
            <PremiumButton size="lg" className="px-10">Start Shopping</PremiumButton>
@@ -38,25 +38,25 @@ export default function CartPage() {
   return (
     <div className="flex flex-col gap-10 py-6 pb-20">
       <header className="flex flex-col gap-2">
-         <p className="text-xs font-black uppercase tracking-widest text-brand">Your Selection</p>
-         <h1 className="text-4xl sm:text-6xl font-black text-cream">SHOPPING <span className="text-brand">BAG</span></h1>
+         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand">Your Selection</p>
+         <h1 className="text-4xl sm:text-6xl font-black text-black uppercase italic tracking-tighter">SHOPPING <span className="text-brand">BAG</span></h1>
       </header>
 
       <div className="grid lg:grid-cols-3 gap-10">
         {/* List */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {items.map((item) => (
-            <GlassCard key={item.id} className="p-4 bg-[#141414] border-white/5 flex gap-4 sm:gap-6">
-              <div className="h-24 w-20 sm:h-32 sm:w-28 shrink-0 overflow-hidden rounded-lg bg-black border border-white/10">
+            <GlassCard key={item.id} className="p-4 bg-white border-black/5 flex gap-4 sm:gap-6">
+              <div className="h-24 w-20 sm:h-32 sm:w-28 shrink-0 overflow-hidden rounded-lg bg-gray-50 border border-black/5">
                 <img src={item.product.image_url} alt={item.product.name} className="h-full w-full object-cover" />
               </div>
               
               <div className="flex-1 flex flex-col">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-brand mb-1">{item.product.brand}</p>
-                    <h3 className="text-sm sm:text-base font-bold text-cream">{item.product.name}</h3>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-tighter mt-1">Size: {item.size}</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand mb-1">{item.product.brand}</p>
+                    <h3 className="text-sm sm:text-base font-black text-black uppercase italic tracking-tight">{item.product.name}</h3>
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest mt-1">Size: {item.size}</p>
                   </div>
                   <button onClick={() => removeItem(item.id)} className="text-muted hover:text-red-500 transition-colors p-1">
                     <Trash2 size={16} />
@@ -64,22 +64,22 @@ export default function CartPage() {
                 </div>
 
                 <div className="mt-auto flex items-center justify-between">
-                  <div className="flex items-center gap-3 bg-black/40 rounded-lg p-1 border border-white/5">
+                  <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1 border border-black/5">
                     <button 
                       onClick={() => item.quantity > 1 && addItem(item.product_id, item.size, item.quantity - 1)}
-                      className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-white/5 text-muted hover:text-white"
+                      className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-black/5 text-muted hover:text-black"
                     >
                       <Minus size={12} />
                     </button>
-                    <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
+                    <span className="text-xs font-black text-black w-4 text-center">{item.quantity}</span>
                     <button 
                       onClick={() => addItem(item.product_id, item.size, item.quantity + 1)}
-                      className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-white/5 text-muted hover:text-white"
+                      className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-black/5 text-muted hover:text-black"
                     >
                       <Plus size={12} />
                     </button>
                   </div>
-                  <span className="text-sm sm:text-base font-black text-cream">₹{item.product.price * item.quantity}</span>
+                  <span className="text-sm sm:text-base font-black text-black">₹{item.product.price * item.quantity}</span>
                 </div>
               </div>
             </GlassCard>
