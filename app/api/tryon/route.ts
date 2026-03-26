@@ -78,6 +78,9 @@ export async function POST(req: NextRequest) {
 
     // 2. Prepare Images
     const getSignedUrl = async (path: string) => {
+      // If it's already a full URL, return it as is
+      if (path.startsWith('http')) return path;
+      
       const { data, error } = await supabase.storage.from('user-images').createSignedUrl(path, 60);
       if (error || !data) throw new Error(`Failed to sign URL for ${path}: ${error?.message}`);
       return data.signedUrl;

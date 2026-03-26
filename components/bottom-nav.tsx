@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Sparkles, Shirt, User, Library } from "lucide-react";
+import { Home, Sparkles, ShoppingBag, MessageSquare, Library } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/shop", label: "Shop", icon: ShoppingBag },
   { href: "/try-on", label: "Studio", icon: Sparkles },
+  { href: "/advisor", label: "Style AI", icon: MessageSquare },
   { href: "/wardrobe", label: "Wardrobe", icon: Library },
-  { href: "/account", label: "Account", icon: User },
 ];
 
 export function BottomNav() {

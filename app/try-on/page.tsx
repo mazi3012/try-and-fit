@@ -1,19 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SectionTitle } from "@/components/section-title";
 import { createTryOnJob, uploadImage } from "@/lib/supabase-api";
+import { getProductById } from "@/lib/ecommerce";
 import { scrapeProductImage } from "@/lib/mock-api";
 import { Camera, Shirt, Link as LinkIcon, Share2 as Instagram, Sparkles, Wand2, Info } from "lucide-react";
 import { Dropzone } from "@/components/ui/dropzone";
 import { PremiumButton } from "@/components/ui/premium-button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/utils/supabase/client";
 import type { InputMode } from "@/lib/types";
+import type { User } from "@supabase/supabase-js";
+import { LogIn } from "lucide-react";
 
 export default function TryOnPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<InputMode>("photo");
   const [personImage, setPersonImage] = useState("");
   const [personFile, setPersonFile] = useState<File | null>(null);
@@ -24,6 +29,37 @@ export default function TryOnPage() {
   const [scrapeLoading, setScrapeLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      setAuthLoading(false);
+    });
+  }, [supabase]);
+
+  const handleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+
+  // Handle pre-filled product from shop
+  useEffect(() => {
+    const productId = searchParams.get("productId");
+    if (productId) {
+      getProductById(productId).then(product => {
+        setOutfitImage(product.image_url);
+        setBuyUrl(`/shop/${product.id}`);
+        setMode("photo"); // Ensure we show the image
+      }).catch(err => {
+        console.error("Failed to load pre-filled product", err);
+      });
+    }
+  }, [searchParams]);
 
   const onUploadPerson = (file: File | null) => {
     if (!file) {
@@ -228,16 +264,27 @@ export default function TryOnPage() {
             )}
 
             <div className="mt-auto pt-2 flex flex-col gap-2">
-              <PremiumButton 
-                size="lg" 
-                className="w-full h-12 text-xs overflow-hidden group shadow-xl shadow-brand/20"
-                onClick={handleSubmit}
-                loading={submitLoading}
-                icon={<Sparkles className="h-4 w-4" />}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                Create Magic
-              </PremiumButton>
+              {!authLoading && !user ? (
+                <PremiumButton 
+                  size="lg" 
+                  className="w-full h-12 text-xs bg-white text-black hover:bg-white/90"
+                  onClick={handleSignIn}
+                  icon={<LogIn className="h-4 w-4" />}
+                >
+                  Sign in to Create Magic
+                </PremiumButton>
+              ) : (
+                <PremiumButton 
+                  size="lg" 
+                  className="w-full h-12 text-xs overflow-hidden group shadow-xl shadow-brand/20"
+                  onClick={handleSubmit}
+                  loading={submitLoading || authLoading}
+                  icon={<Sparkles className="h-4 w-4" />}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  Create Magic
+                </PremiumButton>
+              )}
             </div>
           </GlassCard>
         </div>

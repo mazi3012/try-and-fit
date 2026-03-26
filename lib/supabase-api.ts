@@ -1,19 +1,30 @@
 import { createClient } from "@/utils/supabase/client";
 import { TryOnJob, JobStatus } from "./types";
+import { compressImage } from "./compress-image";
 
 const supabase = createClient();
 
 export async function uploadImage(file: File, bucket: 'user-images' | 'results') {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) throw new Error("Please sign in to upload images and use the try-on features.");
 
-  const fileExt = file.name.split('.').pop();
+  // Compress if it's an image
+  let finalFile = file;
+  if (file.type.startsWith('image/')) {
+    try {
+      finalFile = await compressImage(file, 100);
+    } catch (e) {
+      console.warn("Compression failed, uploading original", e);
+    }
+  }
+
+  const fileExt = finalFile.name.split('.').pop();
   const fileName = `${user.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
   const filePath = fileName;
 
   const { data, error } = await supabase.storage
     .from(bucket)
-    .upload(filePath, file);
+    .upload(filePath, finalFile);
 
   if (error) throw error;
 

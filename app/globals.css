@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0c;
-  --surface: #121216;
-  --foreground: #ffffff;
-  --muted: #9ca3af;
-  --brand: #7c4dff;
-  --brand-light: rgba(124, 77, 255, 0.15);
-  --accent: #ff4081;
-  --border: rgba(255, 255, 255, 0.08);
-  --glass: rgba(18, 18, 22, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.12);
+  --background: #0a0a0a;
+  --surface: #141414;
+  --foreground: #FFF5E4;
+  --muted: #888888;
+  --brand: #FF4D4D; /* Neon Coral */
+  --brand-light: rgba(255, 77, 77, 0.15);
+  --accent: #D4AF37; /* gold */
+  --border: rgba(255, 255, 255, 0.1);
+  --cream: #FFF5E4;
+  --jet-black: #0a0a0a;
 }
 
 @theme inline {
@@ -22,39 +22,45 @@
   --color-brand-light: var(--brand-light);
   --color-accent: var(--accent);
   --color-border: var(--border);
-  --color-glass: var(--glass);
+  --color-cream: var(--cream);
+  --color-jet-black: var(--jet-black);
   
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Page Shell with subtle gradient */
+h1, h2, h3, h4, .font-display {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+}
+
+/* Page Shell */
 .page-shell {
   min-height: 100dvh;
-  background: radial-gradient(circle at top right, rgba(124, 77, 255, 0.05), transparent 40%),
-              radial-gradient(circle at bottom left, rgba(255, 64, 129, 0.05), transparent 40%);
-  background-attachment: scroll;
+  background: radial-gradient(circle at 0% 0%, rgba(255, 77, 77, 0.05), transparent 40%),
+              radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05), transparent 40%);
+  background-attachment: fixed;
 }
 
 
-/* Premium Card */
+/* Franky Fashion Cards - Sharp & Bold */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px; /* Sharp editorial look */
+  box-shadow: var(--shadow-premium);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card:hover {
-  border-color: rgba(124, 77, 255, 0.3);
-  box-shadow: 0 8px 30px rgba(124, 77, 255, 0.1);
+  border-color: var(--brand);
+  transform: translateY(-4px);
 }
 
 /* Glassmorphism */
@@ -68,17 +74,24 @@ body {
 
 /* Premium Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, var(--brand), #5e35b1);
+  background: var(--brand);
   color: white;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 0px #AA3333; /* 3D bottom border look */
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(124, 77, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0px #AA3333;
   filter: brightness(1.1);
+}
+
+.btn-primary:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0px #AA3333;
 }
 
 .btn-outline {
@@ -96,11 +109,11 @@ body {
 /* Sleek Inputs */
 .input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
+  background: #1a1a1a;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: white;
+  border-radius: 4px;
+  padding: 14px 18px;
+  color: var(--cream);
   font-size: 14px;
   transition: all 0.3s ease;
 }
@@ -108,17 +121,10 @@ body {
 .input:focus {
   outline: none;
   border-color: var(--brand);
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 0 4px rgba(124, 77, 255, 0.1);
 }
 
-.muted {
-  color: var(--muted);
-}
-
-/* Gradient Text */
 .text-gradient {
-  background: linear-gradient(135deg, white, #a78bfa);
+  background: linear-gradient(135deg, var(--brand), var(--accent));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

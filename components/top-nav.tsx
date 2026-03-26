@@ -7,17 +7,21 @@ import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
+import { ShoppingBag } from "lucide-react";
+import { useCart } from "@/lib/cart-context";
 
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/try-on", label: "Try-On" },
+  { href: "/shop", label: "Shop" },
+  { href: "/try-on", label: "Studio" },
+  { href: "/advisor", label: "Style AI" },
   { href: "/wardrobe", label: "Wardrobe" },
-  { href: "/account", label: "Account" },
 ];
 
 export function TopNav() {
   const pathname = usePathname();
+  const cart = useCart();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -80,6 +84,15 @@ export function TopNav() {
         </nav>
 
         <div className="flex items-center gap-4">
+          <Link href="/cart" className="relative h-10 w-10 flex items-center justify-center rounded-full bg-white/5 border border-white/5 text-cream hover:border-brand transition-all">
+             <ShoppingBag size={20} />
+             {cart.items.length > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-brand text-[10px] font-black text-white shadow-lg animate-in zoom-in">
+                   {cart.items.length}
+                </span>
+             )}
+          </Link>
+
           {!loading && user ? (
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
