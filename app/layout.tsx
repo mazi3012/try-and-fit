@@ -11,8 +11,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "TryAndFit",
-  description: "AI-powered virtual try-on frontend",
+  title: "TryAndFit — Try Before You Buy",
+  description: "AI-powered virtual fashion try-on. See how any outfit looks on you before purchasing.",
 };
 
 export default function RootLayout({
@@ -21,18 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${outfit.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${outfit.variable} h-full antialiased`}>
       <head>
-        <link href="https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&display=swap" rel="stylesheet" />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#F7F7F7]">
         <CartProvider>
-          <div className="page-shell">
+          <div className="page-shell flex flex-col min-h-screen">
             <TopNav />
-            <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6 lg:px-8 md:pb-10">
+            {/* Full-width main — pages control their own inner width */}
+            <main className="flex-1 w-full pb-20 md:pb-6">
               {children}
             </main>
             <BottomNav />

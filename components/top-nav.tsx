@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { User } from "@supabase/supabase-js";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu, X, Sparkles } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 
 const navItems = [
@@ -27,23 +27,15 @@ export function TopNav() {
   const supabase = createClient();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
       setLoading(false);
-    };
-
-    getUser();
-
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
+      (_event, session) => { setUser(session?.user ?? null); setLoading(false); }
     );
-
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, []);
 
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
@@ -57,15 +49,18 @@ export function TopNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur-md shadow-sm">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 h-14 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-black/5 bg-white shadow-sm">
+      {/* Full-width inner container */}
+      <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-16 flex items-center justify-between h-14">
         {/* Logo */}
-        <Link href="/" className="text-lg font-black tracking-tighter text-[#111] uppercase">
-          TryAndFit<span className="text-brand">.</span>
+        <Link href="/" className="flex items-center gap-1.5 shrink-0">
+          <span className="text-lg font-black tracking-tighter text-[#111] uppercase">
+            TryAndFit<span className="text-brand">.</span>
+          </span>
         </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden items-center gap-1 md:flex">
+        {/* Desktop Nav — full spread */}
+        <nav className="hidden items-center gap-0.5 md:flex">
           {navItems.map((item) => {
             const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             return (
@@ -74,9 +69,7 @@ export function TopNav() {
                 href={item.href}
                 className={cn(
                   "rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-widest transition-all",
-                  active
-                    ? "bg-brand text-white"
-                    : "text-[#555] hover:bg-[#F7F7F7] hover:text-[#111]"
+                  active ? "bg-brand text-white" : "text-[#555] hover:bg-[#F7F7F7] hover:text-[#111]"
                 )}
               >
                 {item.label}
@@ -85,13 +78,24 @@ export function TopNav() {
           })}
         </nav>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-3">
+        {/* Right Section */}
+        <div className="flex items-center gap-2">
+          {/* Sell on TryAndFit — desktop only */}
+          <Link
+            href="/seller/apply"
+            className="hidden lg:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#888] hover:text-brand transition-colors mr-1"
+          >
+            <Sparkles size={11} /> Sell
+          </Link>
+
           {/* Cart */}
-          <Link href="/cart" className="relative h-9 w-9 flex items-center justify-center rounded-full bg-[#F7F7F7] border border-black/5 text-[#555] hover:border-brand hover:text-brand transition-all">
+          <Link
+            href="/cart"
+            className="relative h-9 w-9 flex items-center justify-center rounded-full bg-[#F7F7F7] border border-black/5 text-[#555] hover:border-brand hover:text-brand transition-all"
+          >
             <ShoppingBag size={17} />
             {cart.items.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-brand text-[9px] font-black text-white shadow-md">
+              <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-brand text-[9px] font-black text-white shadow">
                 {cart.items.length}
               </span>
             )}
@@ -104,8 +108,8 @@ export function TopNav() {
                 <Image
                   src={user.user_metadata.avatar_url}
                   alt={user.user_metadata?.full_name || "User"}
-                  width={32}
-                  height={32}
+                  width={30}
+                  height={30}
                   className="rounded-full border-2 border-brand/20"
                 />
               )}
@@ -120,7 +124,7 @@ export function TopNav() {
             !loading && (
               <button
                 onClick={handleSignIn}
-                className="hidden sm:block rounded-full bg-brand px-5 py-2 text-[10px] font-black text-white uppercase tracking-widest transition-all hover:bg-brand/90 shadow-md shadow-brand/20"
+                className="hidden sm:block rounded-full bg-brand px-4 py-1.5 text-[10px] font-black text-white uppercase tracking-widest hover:bg-brand/90 transition-colors shadow-md shadow-brand/20"
               >
                 Sign in
               </button>
@@ -137,9 +141,9 @@ export function TopNav() {
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Drawer */}
       {menuOpen && (
-        <div className="md:hidden border-t border-black/5 bg-white px-4 py-4 flex flex-col gap-1 shadow-lg">
+        <div className="md:hidden border-t border-black/5 bg-white px-4 py-3 flex flex-col gap-1 shadow-lg">
           {navItems.map((item) => {
             const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             return (
@@ -156,13 +160,19 @@ export function TopNav() {
               </Link>
             );
           })}
-          <div className="border-t border-black/5 pt-3 mt-1">
+          <div className="border-t border-black/5 pt-2 mt-1">
             {!loading && user ? (
-              <button onClick={handleSignOut} className="w-full text-left text-[10px] font-black text-[#888] uppercase tracking-widest hover:text-brand px-4 py-2">
+              <button
+                onClick={handleSignOut}
+                className="w-full text-left text-[10px] font-black text-[#888] uppercase tracking-widest hover:text-brand px-4 py-2"
+              >
                 Sign out · {user.user_metadata?.full_name || user.email}
               </button>
             ) : (
-              <button onClick={handleSignIn} className="w-full rounded-xl bg-brand px-4 py-3 text-[11px] font-black text-white uppercase tracking-widest">
+              <button
+                onClick={handleSignIn}
+                className="w-full rounded-xl bg-brand px-4 py-3 text-[11px] font-black text-white uppercase tracking-widest"
+              >
                 Sign in with Google
               </button>
             )}
