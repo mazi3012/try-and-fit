@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createTryOnJob, uploadImage } from "@/lib/supabase-api";
+import { getProfile, createTryOnJob, uploadImage, getImageUrl } from "@/lib/supabase-api";
 import { getProductById } from "@/lib/ecommerce";
 import { scrapeProductImage } from "@/lib/mock-api";
 import { Camera, Shirt, Link as LinkIcon, Share2 as Instagram, Sparkles, Info, LogIn } from "lucide-react";
@@ -32,6 +32,15 @@ function TryOnContent() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
+      if (user) {
+        getProfile().then(profile => {
+          if (profile?.base_avatar_url) {
+            getImageUrl(profile.base_avatar_url, 'user-images').then(url => {
+              setPersonImage(url);
+            });
+          }
+        });
+      }
       setAuthLoading(false);
     });
   }, [supabase]);

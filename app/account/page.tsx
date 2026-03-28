@@ -1,185 +1,242 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
-import { SectionTitle } from "@/components/section-title";
-import { listRecentJobs } from "@/lib/mock-api";
+import { useState, useEffect } from "react";
+import { User as UserIcon, Mail, Phone, Shield, Camera, LogOut, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { getProfile, getImageUrl, uploadImage, updateProfile } from "@/lib/supabase-api";
 import { createClient } from "@/utils/supabase/client";
-import Image from "next/image";
-import { User as UserIcon, LogIn, CreditCard, CheckCircle2, History, Zap, Sparkles, Shirt } from "lucide-react";
-import { GlassCard } from "@/components/ui/glass-card";
-import { PremiumButton } from "@/components/ui/premium-button";
+import { Dropzone } from "@/components/ui/dropzone";
+import type { UserProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import type { User } from "@supabase/supabase-js";
 
-export default function AccountPage() {
-  const [user, setUser] = useState<User | null>(null);
+export default function ProfilePage() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [error, setError] = useState("");
   const supabase = createClient();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+  // Form states
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const loadProfile = async () => {
+    try {
+      const p = await getProfile();
+      if (p) {
+        setProfile(p);
+        setFullName(p.full_name || "");
+        setPhone(p.phone || "");
+        if (p.base_avatar_url) {
+          const url = await getImageUrl(p.base_avatar_url, 'user-images');
+          setAvatarUrl(url);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-    };
-    getUser();
-  }, [supabase.auth]);
+    }
+  };
 
-  const jobs = useMemo(() => listRecentJobs(), []);
-  const completedCount = jobs.filter((job) => job.status === "completed").length;
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
-  const handleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+  const handleUpdateProfile = async () => {
+    setUpdating(true);
+    setError("");
+    try {
+      await updateProfile({
+        full_name: fullName,
+        phone: phone,
+      });
+      await loadProfile();
+      setEditMode(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to update profile");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleAvatarChange = async (file: File | null) => {
+    if (!file) return;
+    setUpdating(true);
+    try {
+      const path = await uploadImage(file, 'user-images');
+      await updateProfile({ base_avatar_url: path });
+      await loadProfile();
+    } catch (err: any) {
+      setError(err.message || "Failed to upload avatar");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/";
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center space-y-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-        <p className="text-sm font-medium text-muted">Loading your profile...</p>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
       </div>
     );
   }
 
-  if (!user) {
+  if (!profile) {
     return (
-      <section className="flex flex-col items-center justify-center space-y-8 py-20 text-center">
-        <div className="relative">
-           <div className="absolute inset-0 bg-brand/20 blur-3xl rounded-full" />
-           <GlassCard className="relative p-12 max-w-lg border-brand/20">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-                 <UserIcon className="h-8 w-8" />
-              </div>
-              <h1 className="text-3xl font-black text-white">Your Wardrobe Awaits</h1>
-              <p className="mt-4 text-muted leading-relaxed">
-                Unlock the full power of TryAndFit AI by signing in. Save your creations, track your history, and manage your virtual garment collection.
-              </p>
-              <PremiumButton onClick={handleSignIn} size="lg" className="mt-8 w-full" icon={<LogIn className="h-5 w-5" />}>
-                Continue with Google
-              </PremiumButton>
-           </GlassCard>
-        </div>
-      </section>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <AlertCircle size={40} className="text-[#ccc]" />
+        <p className="text-sm font-bold text-[#888] uppercase tracking-widest">Please sign in to view your profile</p>
+        <button onClick={() => window.location.href = "/auth/login"} className="btn-primary px-8">Sign In</button>
+      </div>
     );
   }
-
-  const stats = [
-    { label: "Account Plan", value: "Premium Early", icon: <Zap className="h-4 w-4 text-brand" /> },
-    { label: "Daily Credits", value: "Unlimited", icon: <CreditCard className="h-4 w-4 text-accent" /> },
-    { label: "Completed Looks", value: completedCount.toString(), icon: <CheckCircle2 className="h-4 w-4 text-brand" /> },
-  ];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10 py-10">
-      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-           <div className="inline-flex items-center gap-2 rounded-full border border-white/5 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-muted">
-              Member Portal
-           </div>
-           <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">Dashboard</h1>
-        </div>
+    <div className="mx-auto max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col md:flex-row gap-8">
         
-        <GlassCard className="flex items-center gap-4 p-4 border-white/10">
-          <div className="relative">
-            {user.user_metadata?.avatar_url ? (
-              <Image
-                src={user.user_metadata.avatar_url}
-                alt="Profile"
-                width={56}
-                height={56}
-                className="rounded-full border-2 border-brand"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand/20 text-brand border-2 border-brand/50">
-                <UserIcon className="h-6 w-6" />
+        {/* Left Col: Avatar & Status */}
+        <div className="w-full md:w-80 space-y-6">
+          <div className="bg-white border border-black/5 rounded-[32px] p-6 shadow-sm flex flex-col items-center">
+            <div className="relative group w-40 h-40 mb-4">
+              <div className="w-full h-full rounded-[24px] overflow-hidden bg-[#F7F7F7] border-4 border-white shadow-lg">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={profile.full_name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#ccc]">
+                    <UserIcon size={48} />
+                  </div>
+                )}
               </div>
-            )}
-            <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white ring-2 ring-background">
-               <Sparkles className="h-3 w-3" />
-            </div>
-          </div>
-          <div>
-            <p className="text-lg font-black text-white leading-tight">{user.user_metadata?.full_name || "Style Enthusiast"}</p>
-            <p className="text-xs font-medium text-muted">{user.email}</p>
-          </div>
-        </GlassCard>
-      </header>
-
-      {/* Stats Grid */}
-      <div className="grid gap-6 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <GlassCard key={stat.label} className="space-y-3 p-6 border-white/5">
-            <div className="flex items-center justify-between">
-               <span className="text-[10px] font-black uppercase tracking-widest text-muted">{stat.label}</span>
-               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">{stat.icon}</div>
-            </div>
-            <p className="text-2xl font-black text-white">{stat.value}</p>
-          </GlassCard>
-        ))}
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-3">
-         {/* Usage History */}
-         <GlassCard className="lg:col-span-2 space-y-6">
-            <div className="flex items-center gap-3">
-               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                  <History className="h-4 w-4" />
-               </div>
-               <h3 className="text-xl font-bold">Activity Feed</h3>
+              <label className="absolute -bottom-2 -right-2 h-10 w-10 bg-brand text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-all border-4 border-white">
+                <Camera size={18} />
+                <input type="file" className="hidden" onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)} />
+              </label>
             </div>
             
-            {jobs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center opacity-50">
-                 <History className="mb-2 h-10 w-10 text-muted" />
-                 <p className="text-sm font-medium">No activity yet</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {jobs.slice(0, 5).map((job) => (
-                  <div key={job.id} className="group flex items-center justify-between rounded-2xl border border-white/5 bg-white/5 px-5 py-4 transition-all hover:bg-white/10">
-                    <div className="flex items-center gap-4">
-                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5">
-                          <Shirt className="h-5 w-5 text-muted opacity-50" />
-                       </div>
-                       <div>
-                          <p className="text-xs font-black text-white uppercase tracking-tighter">AI Generation</p>
-                          <p className="text-[10px] font-medium text-muted">ID: {job.id.slice(0, 8)}...</p>
-                       </div>
-                    </div>
-                    <div className={cn(
-                      "rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest",
-                      job.status === 'completed' ? "bg-green-500/10 text-green-400" : "bg-brand/10 text-brand"
-                    )}>
-                       {job.status}
-                    </div>
-                  </div>
-                ))}
+            <h2 className="text-xl font-black text-[#111] uppercase tracking-tight text-center">
+              {profile.full_name || "New User"}
+            </h2>
+            <div className="flex items-center gap-1.5 mt-1 bg-brand/10 px-3 py-1 rounded-full">
+              <Shield size={10} className="text-brand" />
+              <span className="text-[9px] font-black text-brand uppercase tracking-widest">{profile.role}</span>
+            </div>
+
+            {/* Seller Status Badge */}
+            {profile.role === 'seller' && (
+              <div className={cn(
+                "mt-4 flex items-center gap-2 px-4 py-2 rounded-xl border w-full justify-center",
+                profile.seller_status === 'approved' ? "bg-green-50 border-green-100 text-green-600" :
+                profile.seller_status === 'pending' ? "bg-amber-50 border-amber-100 text-amber-600" :
+                "bg-red-50 border-red-100 text-red-600"
+              )}>
+                {profile.seller_status === 'approved' ? <CheckCircle2 size={14} /> : 
+                 profile.seller_status === 'pending' ? <Clock size={14} /> : <AlertCircle size={14} />}
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  {profile.seller_status === 'approved' ? "Verified Seller" : 
+                   profile.seller_status === 'pending' ? "Under Verification" : "Auth Failed"}
+                </span>
               </div>
             )}
-         </GlassCard>
+            
+            <button 
+              onClick={handleSignOut}
+              className="mt-6 flex items-center gap-2 text-[10px] font-black text-[#888] uppercase tracking-[0.2em] hover:text-red-500 transition-colors"
+            >
+              <LogOut size={14} /> Log Out
+            </button>
+          </div>
 
-         {/* Pro Tips / Sidebar */}
-         <div className="space-y-6">
-            <GlassCard className="bg-gradient-to-br from-accent/20 to-transparent border-accent/20">
-               <h4 className="text-sm font-black uppercase tracking-widest text-accent">Pro Tip</h4>
-               <p className="mt-3 text-sm leading-relaxed text-white/80 font-medium">
-                  Try using images with solid backgrounds for even sharper AI edge detection.
-               </p>
-            </GlassCard>
+          {profile.seller_status === 'pending' && (
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <p className="text-[10px] font-bold text-amber-600 leading-tight uppercase tracking-tight">
+                Your seller account is under verification... our team will verify and update you soon.
+              </p>
+            </div>
+          )}
+        </div>
 
-            <GlassCard className="space-y-4">
-               <h4 className="text-sm font-black uppercase tracking-widest text-muted">Storage Usage</h4>
-               <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
-                  <div className="h-full w-[15%] bg-brand" />
-               </div>
-               <p className="text-[10px] font-bold text-muted">0.1 GB of 1.0 GB used</p>
-            </GlassCard>
-         </div>
+        {/* Right Col: Details & Forms */}
+        <div className="flex-1 space-y-6">
+          <div className="bg-white border border-black/5 rounded-[32px] p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-sm font-black text-[#111] uppercase tracking-[0.2em]">Profile Details</h3>
+              <button 
+                onClick={() => setEditMode(!editMode)}
+                className="text-[10px] font-black text-brand uppercase tracking-widest hover:underline"
+              >
+                {editMode ? "Cancel" : "Edit Profile"}
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#888] flex items-center gap-2">
+                    <UserIcon size={12} /> Full Name
+                  </label>
+                  {editMode ? (
+                    <input 
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full h-11 bg-[#F7F7F7] border border-black/5 rounded-xl px-4 text-xs font-bold"
+                    />
+                  ) : (
+                    <p className="text-sm font-bold text-[#111]">{profile.full_name || "—"}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#888] flex items-center gap-2">
+                    <Phone size={12} /> Phone Number
+                  </label>
+                  {editMode ? (
+                    <input 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full h-11 bg-[#F7F7F7] border border-black/5 rounded-xl px-4 text-xs font-bold"
+                    />
+                  ) : (
+                    <p className="text-sm font-bold text-[#111]">{profile.phone || "—"}</p>
+                  )}
+                </div>
+              </div>
+
+              {editMode && (
+                <button
+                  onClick={handleUpdateProfile}
+                  disabled={updating}
+                  className="w-full h-12 bg-brand text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand/90 transition-all disabled:opacity-50 shadow-lg shadow-brand/10"
+                >
+                  {updating ? "Saving Changes..." : "Save Profile"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Stats or Actions */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="bg-white border border-black/5 rounded-2xl p-5 shadow-sm">
+              <p className="text-[9px] font-black text-[#888] uppercase tracking-widest mb-1">Shopping</p>
+              <h4 className="text-xs font-black text-[#111] uppercase mb-4">Your Recent Orders</h4>
+              <button onClick={() => window.location.href='/wardrobe'} className="text-[10px] font-black text-brand uppercase tracking-widest hover:underline">View Wardrobe</button>
+            </div>
+            {profile.role === 'seller' && profile.seller_status === 'approved' && (
+              <div className="bg-[#111] text-white rounded-2xl p-5 shadow-sm">
+                <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-1">Business</p>
+                <h4 className="text-xs font-black text-white uppercase mb-4">Seller Dashboard</h4>
+                <button onClick={() => window.location.href='/seller/dashboard'} className="text-[10px] font-black text-brand uppercase tracking-widest hover:text-white transition-colors">Manage Products</button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

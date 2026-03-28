@@ -16,6 +16,7 @@ const navItems = [
   { href: "/try-on", label: "Studio" },
   { href: "/advisor", label: "Style AI" },
   { href: "/wardrobe", label: "Wardrobe" },
+  { href: "/account", label: "Profile" },
 ];
 
 export function TopNav() {

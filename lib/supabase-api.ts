@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
-import { TryOnJob, JobStatus } from "./types";
+import { TryOnJob, JobStatus, UserProfile } from "./types";
 import { compressImage } from "./compress-image";
 
 const supabase = createClient();
@@ -118,4 +118,29 @@ export async function listRecentJobs(): Promise<TryOnJob[]> {
     resultImage: job.result_image_url,
     errorMessage: job.error_message
   }));
+}
+export async function getProfile(): Promise<UserProfile | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error) return null;
+  return data as UserProfile;
+}
+
+export async function updateProfile(updates: Partial<UserProfile>) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', user.id);
+
+  if (error) throw error;
 }

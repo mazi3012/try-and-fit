@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Store, CheckCircle, Clock, XCircle, ChevronRight, Building2, Mail, Phone, Tag, FileText, Sparkles } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Store, CheckCircle, Clock, XCircle, ChevronRight, Building2, Mail, Phone, Tag, FileText, Sparkles, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { getProfile } from "@/lib/supabase-api";
+import type { UserProfile } from "@/lib/types";
 
 export default function SellerApplyPage() {
   const [step, setStep] = useState<"intro" | "form" | "submitted">("intro");
@@ -15,6 +17,18 @@ export default function SellerApplyPage() {
     description: "",
     gst_number: "",
   });
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    getProfile().then(p => {
+      setProfile(p);
+      setChecking(false);
+      if (p?.role === 'seller' && p?.seller_status === 'approved') {
+        window.location.href = "/seller/dashboard";
+      }
+    });
+  }, []);
 
   const slug = useMemo(
     () => form.store_name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
@@ -43,18 +57,26 @@ export default function SellerApplyPage() {
     }
   };
 
-  if (step === "submitted") {
+  if (checking) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (profile?.seller_status === 'pending' || step === "submitted") {
     return (
       <div className="max-w-xl mx-auto py-20 flex flex-col items-center text-center gap-6">
-        <div className="h-20 w-20 rounded-full bg-green-50 border border-green-100 flex items-center justify-center">
-          <CheckCircle className="text-green-500" size={36} />
+        <div className="h-20 w-20 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center">
+          <Clock className="text-amber-500" size={36} />
         </div>
-        <h1 className="text-3xl font-black text-[#111] uppercase tracking-tighter">Application Sent!</h1>
+        <h1 className="text-3xl font-black text-[#111] uppercase tracking-tighter">Under Verification</h1>
         <p className="text-[#888] font-medium max-w-sm">
-          Your seller application is under review. We'll notify you by email within 24–48 hours once approved.
+          Your seller account is currently under review. Our team will verify your details and update you soon.
         </p>
         <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-5 py-3 text-sm font-bold text-amber-700">
-          <Clock size={16} /> Under review — usually 24–48h
+          <Clock size={16} /> Status: Pending Verification
         </div>
         <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-[#888] hover:text-brand transition-colors">
           Back to shopping →
