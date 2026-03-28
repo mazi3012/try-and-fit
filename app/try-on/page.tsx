@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createTryOnJob, uploadImage } from "@/lib/supabase-api";
 import { getProductById } from "@/lib/ecommerce";
 import { scrapeProductImage } from "@/lib/mock-api";
-import { Camera, Shirt, Link as LinkIcon, Share2 as Instagram, Sparkles, Info, LogIn, X } from "lucide-react";
+import { Camera, Shirt, Link as LinkIcon, Share2 as Instagram, Sparkles, Info, LogIn } from "lucide-react";
 import { Dropzone } from "@/components/ui/dropzone";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import type { InputMode } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
-export default function TryOnPage() {
+function TryOnContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<InputMode>("photo");
@@ -259,5 +259,19 @@ export default function TryOnPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TryOnPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-[11px] font-black uppercase tracking-widest text-[#888] animate-pulse">
+          Loading Studio...
+        </div>
+      </div>
+    }>
+      <TryOnContent />
+    </Suspense>
   );
 }
