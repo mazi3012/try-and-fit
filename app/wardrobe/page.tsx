@@ -17,8 +17,18 @@ export default async function WardrobePage() {
     .eq("status", "completed")
     .order("created_at", { ascending: false });
 
-  const wardrobe = (allJobs ?? []).filter((j: any) => j.saved_to_wardrobe);
-  const history = allJobs ?? [];
+  const mappedJobs = (allJobs ?? []).map((job: any) => ({
+    ...job,
+    result_image_url: job.result_image_url 
+      ? supabase.storage.from("results").getPublicUrl(job.result_image_url).data.publicUrl 
+      : null,
+    garment_image_url: job.garment_image_url && !job.garment_image_url.startsWith("http")
+      ? supabase.storage.from("user-images").getPublicUrl(job.garment_image_url).data.publicUrl
+      : job.garment_image_url,
+  }));
+
+  const wardrobe = mappedJobs.filter((j: any) => j.saved_to_wardrobe);
+  const history = mappedJobs;
 
   // Stats
   const categories = [...new Set(wardrobe.map((j: any) => j.category).filter(Boolean))];

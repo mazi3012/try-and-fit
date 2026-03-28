@@ -51,7 +51,21 @@ export async function getProducts(categoryId?: string, limit = 20) {
 
   const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
   if (error) throw error;
-  return data as (Product & { categories: Category })[];
+
+  const transformed = data.map((p: any) => ({
+    ...p,
+    image_url: p.image_url && !p.image_url.startsWith('http')
+      ? supabase.storage.from('user-images').getPublicUrl(p.image_url).data.publicUrl
+      : p.image_url,
+    categories: p.categories ? {
+      ...p.categories,
+      image_url: p.categories.image_url && !p.categories.image_url.startsWith('http')
+        ? supabase.storage.from('user-images').getPublicUrl(p.categories.image_url).data.publicUrl
+        : p.categories.image_url
+    } : null
+  }));
+
+  return transformed as (Product & { categories: Category })[];
 }
 
 export async function getProductById(id: string) {
@@ -62,7 +76,22 @@ export async function getProductById(id: string) {
     .single();
   
   if (error) throw error;
-  return data as (Product & { categories: Category });
+
+  const p = data as any;
+  const transformed = {
+    ...p,
+    image_url: p.image_url && !p.image_url.startsWith('http')
+      ? supabase.storage.from('user-images').getPublicUrl(p.image_url).data.publicUrl
+      : p.image_url,
+    categories: p.categories ? {
+      ...p.categories,
+      image_url: p.categories.image_url && !p.categories.image_url.startsWith('http')
+        ? supabase.storage.from('user-images').getPublicUrl(p.categories.image_url).data.publicUrl
+        : p.categories.image_url
+    } : null
+  };
+
+  return transformed as (Product & { categories: Category });
 }
 
 export async function getCategories() {
@@ -72,7 +101,15 @@ export async function getCategories() {
     .order('name');
   
   if (error) throw error;
-  return data as Category[];
+
+  const transformed = data.map((c: any) => ({
+    ...c,
+    image_url: c.image_url && !c.image_url.startsWith('http')
+      ? supabase.storage.from('user-images').getPublicUrl(c.image_url).data.publicUrl
+      : c.image_url
+  }));
+
+  return transformed as Category[];
 }
 
 // --- Cart APIs ---
@@ -87,7 +124,18 @@ export async function getCart() {
     .eq('user_id', user.id);
 
   if (error) throw error;
-  return data as CartItem[];
+
+  const transformed = (data as any[]).map(item => ({
+    ...item,
+    product: item.product ? {
+      ...item.product,
+      image_url: item.product.image_url && !item.product.image_url.startsWith('http')
+        ? supabase.storage.from('user-images').getPublicUrl(item.product.image_url).data.publicUrl
+        : item.product.image_url
+    } : null
+  }));
+
+  return transformed as CartItem[];
 }
 
 export async function addToCart(productId: string, size: string, quantity = 1) {
