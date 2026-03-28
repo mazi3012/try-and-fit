@@ -28,43 +28,53 @@ export async function proxy(request: NextRequest) {
   // Refresh auth session (keeps Supabase cookies alive)
   const path = request.nextUrl.pathname;
 
-  // ── Session & Role Checks ──────────────────────────────
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Protect all non-auth and non-api routes
-  if (user && !path.startsWith('/onboarding') && 
-      !path.startsWith('/auth') && 
-      !path.startsWith('/api')) {
-    
-    // Fetch profile for onboarding & role checks
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarded, role, seller_status')
-      .eq('id', user.id)
-      .single();
+  // If there's a user, we need to check onboarding AND role
+  if (user) {
+    // Check if the user is currently on an excluded path
+    const isExcluded = path.startsWith('/onboarding') || 
+                       path.startsWith('/auth') || 
+                       path.startsWith('/api');
 
-    if (profile && !profile.onboarded) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/onboarding';
-      return NextResponse.redirect(url);
-    }
+    if (!isExcluded) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarded, role, seller_status')
+        .eq('id', user.id)
+        .maybeSingle();
 
-    const role = profile?.role ?? 'buyer';
-    const sellerStatus = profile?.seller_status ?? 'none';
-
-    // Admin-only routes
-    if (path.startsWith('/admin') && role !== 'admin') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/unauthorized';
-      return NextResponse.redirect(url);
-    }
-
-    // New/Pending sellers are redirected to /seller/apply if they try to access tools
-    if (path.startsWith('/seller') && !path.startsWith('/seller/apply')) {
-      if (role !== 'seller' || sellerStatus !== 'approved') {
+      // 1. Mandatory Onboarding
+      if (profile && !profile.onboarded) {
         const url = request.nextUrl.clone();
-        url.pathname = '/seller/apply';
-        return NextResponse.redirect(url);
+        url.pathname = '/onboarding';
+        const redirectResponse = NextResponse.redirect(url);
+        // Copy cookies to redirect response
+        response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c));
+        return redirectResponse;
+      }
+
+      const role = profile?.role ?? 'buyer';
+      const sellerStatus = profile?.seller_status ?? 'none';
+
+      // 2. Admin Protection
+      if (path.startsWith('/admin') && role !== 'admin') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/unauthorized';
+        const redirectResponse = NextResponse.redirect(url);
+        response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c));
+        return redirectResponse;
+      }
+
+      // 3. Seller Protection
+      if (path.startsWith('/seller') && !path.startsWith('/seller/apply')) {
+        if (role !== 'seller' || sellerStatus !== 'approved') {
+          const url = request.nextUrl.clone();
+          url.pathname = '/seller/apply';
+          const redirectResponse = NextResponse.redirect(url);
+          response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c));
+          return redirectResponse;
+        }
       }
     }
   }
