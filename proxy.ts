@@ -26,47 +26,46 @@ export async function proxy(request: NextRequest) {
   );
 
   // Refresh auth session (keeps Supabase cookies alive)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const path = request.nextUrl.pathname;
 
-  // ── Role-based route protection ──────────────────────────────
-  // /seller/* and /admin/* need role checks
-  if (path.startsWith("/seller") || path.startsWith("/admin")) {
-    if (!user) {
-      // Not logged in → send to home
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
-    }
+  // ── Session & Role Checks ──────────────────────────────
+  const { data: { user } } = await supabase.auth.getUser();
 
-    // Fetch role (only for protected paths to avoid DB call on every request)
+  // Protect all non-auth and non-api routes
+  if (user && !path.startsWith('/onboarding') && 
+      !path.startsWith('/auth') && 
+      !path.startsWith('/api')) {
+    
+    // Fetch profile for onboarding & role checks
     const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
+      .from('profiles')
+      .select('onboarded, role, seller_status')
+      .eq('id', user.id)
       .single();
 
-    const role = profile?.role ?? "buyer";
-
-    // Admin-only routes
-    if (path.startsWith("/admin") && role !== "admin") {
+    if (profile && !profile.onboarded) {
       const url = request.nextUrl.clone();
-      url.pathname = "/unauthorized";
+      url.pathname = '/onboarding';
       return NextResponse.redirect(url);
     }
 
-    // Seller routes — buyers get sent to apply page (except /seller/apply itself)
-    if (
-      path.startsWith("/seller") &&
-      !path.startsWith("/seller/apply") &&
-      role === "buyer"
-    ) {
+    const role = profile?.role ?? 'buyer';
+    const sellerStatus = profile?.seller_status ?? 'none';
+
+    // Admin-only routes
+    if (path.startsWith('/admin') && role !== 'admin') {
       const url = request.nextUrl.clone();
-      url.pathname = "/seller/apply";
+      url.pathname = '/unauthorized';
       return NextResponse.redirect(url);
+    }
+
+    // New/Pending sellers are redirected to /seller/apply if they try to access tools
+    if (path.startsWith('/seller') && !path.startsWith('/seller/apply')) {
+      if (role !== 'seller' || sellerStatus !== 'approved') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/seller/apply';
+        return NextResponse.redirect(url);
+      }
     }
   }
 
