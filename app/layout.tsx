@@ -4,6 +4,7 @@ import "./globals.css";
 import { TopNav } from "@/components/top-nav";
 import { BottomNav } from "@/components/bottom-nav";
 import { CartProvider } from "@/lib/cart-context";
+import { Footer } from "@/components/footer";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -36,6 +37,7 @@ export default function RootLayout({
             <main className="flex-1 w-full pb-20 md:pb-6">
               {children}
             </main>
+            <Footer />
             <BottomNav />
           </div>
         </CartProvider>

@@ -39,6 +39,16 @@ export async function POST(request: Request) {
 
     if (error) throw error;
 
+    // 4. Update profiles seller_status to 'pending'
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ seller_status: 'pending' })
+      .eq("id", user.id);
+
+    if (profileError) {
+      console.warn("Failed to update profile seller_status:", profileError.message);
+    }
+
     return NextResponse.json({ success: true, application: data });
   } catch (err: any) {
     console.error(err);

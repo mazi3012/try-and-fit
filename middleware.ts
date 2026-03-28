@@ -1,8 +1,76 @@
-import { type NextRequest } from 'next/server';
-import { updateSession } from '@/utils/supabase/session';
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options });
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options });
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          response.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Onboarding Logic
+  if (user && !request.nextUrl.pathname.startsWith('/onboarding') && 
+      !request.nextUrl.pathname.startsWith('/auth') && 
+      !request.nextUrl.pathname.startsWith('/api')) {
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarded, role, seller_status')
+      .eq('id', user.id)
+      .single();
+
+    if (profile && !profile.onboarded) {
+      return NextResponse.redirect(new URL('/onboarding', request.url));
+    }
+
+    // Role Protection
+    if (request.nextUrl.pathname.startsWith('/seller/products') || 
+        request.nextUrl.pathname.startsWith('/seller/dashboard')) {
+      if (profile?.role !== 'seller' || profile?.seller_status !== 'approved') {
+        return NextResponse.redirect(new URL('/seller/apply', request.url));
+      }
+    }
+
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+      if (profile?.role !== 'admin') {
+        return NextResponse.redirect(new URL('/unauthorized', request.url));
+      }
+    }
+  }
+
+  return response;
 }
 
 export const config = {
